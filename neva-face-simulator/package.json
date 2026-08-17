@@ -1,0 +1,26 @@
+{
+  "name": "neva-face-simulator",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "NEVA Aesthetic Clinic - 3D face simulator (Phase 1)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.8",
+    "@react-three/fiber": "^9.7.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@react-three/test-renderer": "^9.1.1",
+    "@vitejs/plugin-react": "^6.0.5",
+    "vite": "^8.2.1",
+    "vitest": "^4.1.10"
+  }
+}

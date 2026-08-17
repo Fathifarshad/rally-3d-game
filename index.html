@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0a0a0c" />
+    <!-- Inline favicon: keeps the console clean without shipping a binary. -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b0c10'/%3E%3Cpath d='M9 9h14l-9 11h9' stroke='%23e0243c' stroke-width='3' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E"
+    />
+    <title>NISSAN Z — Ultimate Drive</title>
+  </head>
+  <body>
+    <div id="app">
+      <!-- ===== 3D CANVAS ===== -->
+      <canvas id="game-canvas"></canvas>
+
+      <!-- ===== LOADING ===== -->
+      <div id="loading-screen" class="screen active">
+        <div class="loader-inner">
+          <div class="brand-mark">NISSAN&nbsp;Z</div>
+          <div class="brand-sub">ULTIMATE DRIVE</div>
+          <div class="loader-bar"><span id="loader-fill"></span></div>
+          <div class="loader-text" id="loader-text">INITIALIZING ENGINE…</div>
+        </div>
+      </div>
+
+      <!-- ===== MAIN MENU ===== -->
+      <div id="main-menu" class="screen">
+        <div class="menu-vignette"></div>
+        <div class="menu-content">
+          <div class="menu-title">
+            <h1>NISSAN <span class="accent">Z</span></h1>
+            <h2>ULTIMATE DRIVE</h2>
+          </div>
+          <nav class="menu-nav">
+            <button class="menu-btn primary" data-action="start">
+              <span class="btn-index">01</span><span class="btn-label">START GAME</span>
+            </button>
+            <button class="menu-btn" data-action="garage">
+              <span class="btn-index">02</span><span class="btn-label">GARAGE</span>
+            </button>
+            <button class="menu-btn" data-action="settings">
+              <span class="btn-index">03</span><span class="btn-label">SETTINGS</span>
+            </button>
+            <button class="menu-btn" data-action="exit">
+              <span class="btn-index">04</span><span class="btn-label">EXIT</span>
+            </button>
+          </nav>
+          <div class="menu-foot">
+            <span>W A S D — DRIVE</span><span>SHIFT — NITRO</span><span>SPACE — HANDBRAKE</span>
+            <span>C — CAMERA</span><span>R — RESET</span><span>ESC — PAUSE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== GARAGE ===== -->
+      <div id="garage-screen" class="screen">
+        <div class="garage-top">
+          <div class="garage-title">GARAGE</div>
+          <button class="ghost-btn" data-action="garage-back">◀ BACK</button>
+        </div>
+        <div class="garage-panel">
+          <div class="car-name">NISSAN Z <span class="trim">PERFORMANCE</span></div>
+          <div class="spec-list">
+            <div class="spec"><label>TOP SPEED</label><div class="bar"><i style="width:92%"></i></div><b>295 KM/H</b></div>
+            <div class="spec"><label>ACCELERATION</label><div class="bar"><i style="width:86%"></i></div><b>4.3 S</b></div>
+            <div class="spec"><label>HANDLING</label><div class="bar"><i style="width:80%"></i></div><b>A</b></div>
+            <div class="spec"><label>BRAKING</label><div class="bar"><i style="width:83%"></i></div><b>A-</b></div>
+            <div class="spec"><label>NITRO</label><div class="bar"><i style="width:88%"></i></div><b>+38%</b></div>
+          </div>
+          <div class="garage-group">
+            <label class="group-label">VIEW</label>
+            <div class="chip-row" id="garage-views">
+              <button class="chip active" data-view="front">FRONT</button>
+              <button class="chip" data-view="side">SIDE</button>
+              <button class="chip" data-view="rear">REAR</button>
+              <button class="chip" data-view="interior">INTERIOR</button>
+            </div>
+          </div>
+          <div class="garage-group">
+            <label class="group-label">PAINT</label>
+            <div class="chip-row swatches" id="garage-colors"></div>
+          </div>
+          <button class="menu-btn primary wide" data-action="garage-drive"><span class="btn-label">DRIVE THIS CAR</span></button>
+        </div>
+      </div>
+
+      <!-- ===== SETTINGS ===== -->
+      <div id="settings-screen" class="screen">
+        <div class="settings-panel">
+          <div class="panel-title">SETTINGS</div>
+          <div class="setting-row">
+            <label>GRAPHICS QUALITY</label>
+            <div class="chip-row" id="set-quality">
+              <button class="chip" data-q="low">LOW</button>
+              <button class="chip active" data-q="medium">MEDIUM</button>
+              <button class="chip" data-q="high">HIGH</button>
+            </div>
+          </div>
+          <div class="setting-row">
+            <label>MASTER VOLUME</label>
+            <input id="set-volume" type="range" min="0" max="100" value="70" />
+            <span class="val" id="set-volume-val">70</span>
+          </div>
+          <div class="setting-row">
+            <label>MUSIC</label>
+            <div class="chip-row" id="set-music">
+              <button class="chip active" data-m="on">ON</button>
+              <button class="chip" data-m="off">OFF</button>
+            </div>
+          </div>
+          <div class="setting-row">
+            <label>SHADOWS</label>
+            <div class="chip-row" id="set-shadows">
+              <button class="chip active" data-s="on">ON</button>
+              <button class="chip" data-s="off">OFF</button>
+            </div>
+          </div>
+          <div class="setting-row">
+            <label>TOUCH CONTROLS</label>
+            <div class="chip-row" id="set-touch">
+              <button class="chip" data-t="on">ON</button>
+              <button class="chip active" data-t="auto">AUTO</button>
+              <button class="chip" data-t="off">OFF</button>
+            </div>
+          </div>
+          <button class="menu-btn primary wide" data-action="settings-back"><span class="btn-label">BACK</span></button>
+        </div>
+      </div>
+
+      <!-- ===== HUD ===== -->
+      <div id="hud" class="hud">
+        <!-- top left: mission + score -->
+        <div class="hud-topleft">
+          <div class="hud-card mission-card">
+            <div class="mission-head"><span id="mission-id">MISSION 01</span><span id="mission-state">ACTIVE</span></div>
+            <div class="mission-name" id="mission-name">Reach 200 KM/H</div>
+            <div class="mission-bar"><i id="mission-fill"></i></div>
+            <div class="mission-progress" id="mission-progress">0 / 200</div>
+          </div>
+          <div class="hud-card stat-card">
+            <div class="stat"><label>SCORE</label><b id="hud-score">0</b></div>
+            <div class="stat"><label>DIST</label><b id="hud-distance">0.00 KM</b></div>
+          </div>
+        </div>
+
+        <!-- top right: race info -->
+        <div class="hud-topright">
+          <div class="hud-card race-card">
+            <div class="race-row"><label>POS</label><b id="hud-position">1<sup>st</sup></b></div>
+            <div class="race-row"><label>LAP</label><b id="hud-lap">1/2</b></div>
+            <div class="race-row"><label>TIME</label><b id="hud-time">00:00.00</b></div>
+            <div class="race-row"><label>CP</label><b id="hud-checkpoint">0/12</b></div>
+          </div>
+        </div>
+
+        <!-- centre popups -->
+        <div class="hud-center">
+          <div id="big-message" class="big-message"></div>
+          <div id="toast-stack" class="toast-stack"></div>
+        </div>
+
+        <!-- bottom right: speedometer -->
+        <div class="hud-bottomright">
+          <div class="cluster">
+            <canvas id="rpm-gauge" width="320" height="320"></canvas>
+            <div class="cluster-digital">
+              <div class="speed-label">SPEED</div>
+              <div class="speed-value"><span id="hud-speed">0</span><em>KM/H</em></div>
+              <div class="gear-box"><label>GEAR</label><span id="hud-gear">N</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- bottom left: minimap + nitro -->
+        <div class="hud-bottomleft">
+          <canvas id="minimap" width="240" height="240"></canvas>
+          <div class="nitro-wrap">
+            <label>NITRO</label>
+            <div class="nitro-bar"><i id="nitro-fill"></i></div>
+          </div>
+        </div>
+
+        <!-- touch controls -->
+        <div id="touch-controls" class="touch-controls">
+          <div class="touch-left">
+            <button class="tbtn" data-key="left">◀</button>
+            <button class="tbtn" data-key="right">▶</button>
+          </div>
+          <div class="touch-right">
+            <button class="tbtn small" data-key="handbrake">HB</button>
+            <button class="tbtn small" data-key="nitro">N2O</button>
+            <button class="tbtn" data-key="brake">▼</button>
+            <button class="tbtn accel" data-key="throttle">▲</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PAUSE ===== -->
+      <div id="pause-screen" class="screen overlay">
+        <div class="pause-panel">
+          <div class="panel-title">PAUSED</div>
+          <button class="menu-btn primary wide" data-action="resume"><span class="btn-label">RESUME</span></button>
+          <button class="menu-btn wide" data-action="restart"><span class="btn-label">RESTART RACE</span></button>
+          <button class="menu-btn wide" data-action="pause-settings"><span class="btn-label">SETTINGS</span></button>
+          <button class="menu-btn wide" data-action="quit"><span class="btn-label">MAIN MENU</span></button>
+        </div>
+      </div>
+
+      <!-- ===== RESULTS ===== -->
+      <div id="results-screen" class="screen overlay">
+        <div class="results-panel">
+          <div class="panel-title" id="results-title">RACE COMPLETE</div>
+          <div class="result-grid">
+            <div class="result"><label>TIME</label><b id="res-time">00:00.00</b></div>
+            <div class="result"><label>POSITION</label><b id="res-position">1st</b></div>
+            <div class="result"><label>SCORE</label><b id="res-score">0</b></div>
+            <div class="result"><label>TOP SPEED</label><b id="res-topspeed">0 KM/H</b></div>
+            <div class="result"><label>DISTANCE</label><b id="res-distance">0.00 KM</b></div>
+            <div class="result"><label>OVERTAKES</label><b id="res-overtakes">0</b></div>
+          </div>
+          <div class="result-actions">
+            <button class="menu-btn primary" data-action="restart"><span class="btn-label">RACE AGAIN</span></button>
+            <button class="menu-btn" data-action="quit"><span class="btn-label">MAIN MENU</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div id="fps-meter" class="fps-meter">60 FPS</div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -63,16 +63,16 @@ bdi{unicode-bidi:isolate}
 .brand-in{max-width:640px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;gap:16px;position:relative}
 .brand-logo{height:110px;width:auto;display:block;flex:0 0 auto}
 .brand-text{min-width:0}
-.dr-name{margin:0;font-size:22px;font-weight:800;line-height:1.35;color:var(--brand-gold)}
+.dr-name{margin:0;font-size:23px;font-weight:800;line-height:1.35;color:var(--brand-gold);text-wrap:balance}
 .dr-cred{margin:6px 0 0;padding-top:6px;border-top:1px solid rgba(227,196,126,.35);font-size:14px;line-height:1.8;color:var(--brand-ink)}
 .theme-btn{position:absolute;top:10px;left:12px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(227,196,126,.4);
   background:transparent;color:var(--brand-gold);display:grid;place-items:center;padding:0}
 .theme-btn svg{width:18px;height:18px}
 
 /* ---------- title / notices ---------- */
-.apptitle{padding:16px 2px 0}
-h1{font-size:20px;line-height:1.35;margin:0;font-weight:800;text-wrap:balance}
-.sub{margin:2px 0 0;font-size:13.5px;color:var(--muted)}
+.author{margin-top:16px;padding:12px 16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.au-name{margin:0;font-size:18px;font-weight:800;line-height:1.4;color:var(--accent)}
+.au-cred{margin:4px 0 0;padding-top:4px;border-top:1px solid var(--line);font-size:13.5px;line-height:1.8;color:var(--muted)}
 .notice{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--text);margin:12px 0 0;padding:10px 12px;
   background:var(--surface);border:1px solid var(--line);border-radius:12px;line-height:1.75}
 .notice svg{flex:0 0 auto;width:20px;height:20px;color:var(--gold);margin-top:2px}
@@ -244,8 +244,8 @@ select:not([dir="ltr"]){background-position:left 10px center;padding-left:28px!i
   <div class="brand-in">
     <img class="brand-logo" src="logo.jpg" alt="لوگوی دکتر فرشاد فتحی" width="78" height="110">
     <div class="brand-text">
-      <p class="dr-name">دکتر فرشاد فتحی</p>
-      <p class="dr-cred">متخصص طب اورژانس<br>فلوشیپ انفورماتیک بالینی</p>
+      <h1 class="dr-name">محاسبه‌گر دارویی بالینی</h1>
+      <p class="dr-cred">برای پرستاران و پزشکان، بر بالین بیمار</p>
     </div>
     <button type="button" class="theme-btn" id="theme-btn" aria-label="تغییر حالت روشن و تیره">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -254,9 +254,9 @@ select:not([dir="ltr"]){background-position:left 10px center;padding-left:28px!i
 </header>
 
 <div class="wrap">
-  <div class="apptitle">
-    <h1>محاسبه‌گر دارویی بالینی</h1>
-    <p class="sub">برای پرستاران و پزشکان، بر بالین بیمار</p>
+  <div class="author">
+    <p class="au-name">دکتر فرشاد فتحی</p>
+    <p class="au-cred">متخصص طب اورژانس<br>فلوشیپ انفورماتیک بالینی</p>
   </div>
   <p class="notice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
     <span>نتایج را پیش از اجرا با دستور پزشک و پروتکل بخش تطبیق دهید و داروهای پرخطر را با همکار دوم کنترل کنید.</span></p>

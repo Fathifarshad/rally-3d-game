@@ -5,7 +5,7 @@ const path = require('path');
 
 const URL = 'file://' + path.join(__dirname, '..', 'index.html');
 const SHOTS = path.join(__dirname, 'screenshots');
-const TABS = ['dhv', 'wb', 'inf', 'gtt', 'dil', 'renal', 'maint'];
+const TABS = ['prot', 'dhv', 'wb', 'inf', 'gtt', 'dil', 'renal', 'maint'];
 
 // Realistic values so screenshots show a working calculator, not empty boxes.
 const SAMPLE = {
@@ -15,7 +15,8 @@ const SAMPLE = {
   gtt: { 'gtt-vol': '1000', 'gtt-h': '8' },
   dil: { 'dil-a-amt': '1', 'dil-a-vol': '10', 'dil-pct': '2', 'dil-c1': '10', 'dil-c2': '1', 'dil-v2': '10' },
   renal: { 'r-age': '60', 'r-h': '170', 'r-w': '70', 'r-scr': '1' },
-  maint: { 'm-w': '25' }
+  maint: { 'm-w': '25' },
+  prot: { 'prot-w': '70' }
 };
 
 for (const width of [360, 1280]) {
@@ -54,7 +55,7 @@ for (const width of [360, 1280]) {
 
           // the main result is filled in (sample values are complete)
           const res = await page.locator('.calc.active .result').first().getAttribute('class');
-          expect(res).not.toContain('is-empty');
+          if (k !== 'prot') expect(res).not.toContain('is-empty');
 
           await page.locator('.calc.active').screenshot({ path: path.join(SHOTS, `${width}-${scheme}-${k}.png`) });
         }

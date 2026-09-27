@@ -373,3 +373,63 @@ describe('حریم خصوصی', () => {
     assert.deepEqual(keys, ['medcalc-tab', 'medcalc-voice']);
   });
 });
+
+/* ---------------------------------------------------------------- */
+describe('پروتکل‌ها', () => {
+  function prot(id, w) {
+    const a = load(); a.tab('prot'); a.sel('prot-sel', id);
+    if (w !== undefined) a.set('prot-w', String(w));
+    a.steps = [...a.d.querySelectorAll('#prot-out .pstep')].map(s => ({
+      big: s.querySelector('.res-val').textContent.trim(),
+      row: l => { const r = [...s.querySelectorAll('.res-rows div')].find(x => x.querySelector('dt').textContent.includes(l)); return r && r.querySelector('dd').textContent.trim(); },
+      btn: s.querySelector('.p-inf')
+    }));
+    return a;
+  }
+  test('آمیودارون با نبض: 600، 33.33 و 16.67 mL/h', () => {
+    const a = prot('amio');
+    assert.equal(a.steps[0].row('سرعت پمپ'), '600 mL/h');
+    assert.equal(a.steps[1].row('سرعت پمپ'), '33.33 mL/h');
+    assert.equal(a.steps[2].row('سرعت پمپ'), '16.67 mL/h');
+  });
+  test('دکمه «باز کردن در انفوزیون پمپ» محاسبه‌گر پمپ را پر می‌کند', () => {
+    const a = prot('amio');
+    a.steps[1].btn.click();
+    assert.equal(a.d.querySelector('[data-tab="inf"]').getAttribute('aria-selected'), 'true');
+    assert.equal(a.main('inf'), '33.33 mL/h');
+  });
+  test('هپارین VTE، 80 kg: بولوس 6,400 units (1.28 mL)، انفوزیون 2.88 mL/h', () => {
+    const a = prot('hep-vte', 80);
+    assert.equal(a.steps[0].big, '6,400 units'); assert.equal(a.steps[0].row('حجم'), '1.28 mL');
+    assert.equal(a.steps[1].row('سرعت پمپ'), '2.88 mL/h');
+    a.steps[1].btn.click();
+    assert.equal(a.main('inf'), '2.88 mL/h');
+  });
+  test('هپارین ACS، 100 kg: سقف 4000 units و 1000 units/h', () => {
+    const a = prot('hep-acs', 100);
+    assert.equal(a.steps[0].big, '4,000 units (سقف)');
+    assert.equal(a.steps[1].big, '1,000 units/h (سقف)'); assert.equal(a.steps[1].row('سرعت پمپ'), '2 mL/h');
+  });
+  test('DKA، 70 kg: 7 mL/h', () => {
+    assert.equal(prot('dka', 70).steps[1].row('سرعت پمپ'), '7 mL/h');
+  });
+  test('تشنج مداوم، 70 kg: دیازپام 10 mg (سقف)، لوتیراستام 4,200 mg، فنی‌توئین 1,400 mg در حداقل 28 دقیقه', () => {
+    const a = prot('status', 70);
+    assert.equal(a.steps[0].big, '10 mg (سقف)'); assert.equal(a.steps[0].row('حجم'), '2 mL');
+    assert.equal(a.steps[1].big, '4,200 mg'); assert.equal(a.steps[1].row('حجم'), '42 mL');
+    assert.equal(a.steps[2].big, '1,400 mg'); assert.equal(a.steps[2].row('حداقل مدت'), '28 دقیقه');
+  });
+  test('آنافیلاکسی، 70 kg: 0.5 mg عضلانی (سقف)', () => {
+    const a = prot('anaph', 70);
+    assert.equal(a.steps[0].big, '0.5 mg (سقف)'); assert.equal(a.steps[0].row('حجم'), '0.5 mL');
+  });
+  test('منیزیم اکلامپسی: 300 و 50 mL/h', () => {
+    const a = prot('mg-ecl');
+    assert.equal(a.steps[0].row('سرعت پمپ'), '300 mL/h'); assert.equal(a.steps[1].row('سرعت پمپ'), '50 mL/h');
+  });
+  test('پروتکل وزنی بدون وزن: پیام راهنما و بدون عدد ساختگی', () => {
+    const a = prot('rsi');
+    assert.equal(a.steps[0].big, '—');
+    assert.match(a.msgs('prot', 'info').join(), /وزن بیمار را وارد کنید/);
+  });
+});

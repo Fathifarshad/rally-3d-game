@@ -159,6 +159,21 @@ select:not([dir="ltr"]){background-position:left 10px center;padding-left:28px!i
 .lib summary::before{content:"";width:8px;height:8px;border-inline-start:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .15s;margin-inline-end:2px}
 .lib[open] summary::before{transform:rotate(-45deg)}
 .lib-group{margin-top:8px}
+/* protocols */
+.p-head{margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line)}
+.p-head.high{border-color:rgba(179,38,30,.45)}
+.p-title{font-weight:800;font-size:16px;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.p-en{display:block;font-size:13px;color:var(--muted)}
+.p-ind{font-size:13.5px;margin-top:4px}
+.pstep{margin-top:12px;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.pstep-h{display:flex;gap:10px;align-items:center;padding:9px 12px;background:var(--surface-2)}
+.pnum{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:800;font-size:13px}
+.pstep-t{font-weight:700;font-size:14.5px;line-height:1.5}
+.result.pstep-b{margin:0;border:0;border-radius:0}
+.pstep-b .res-val{font-size:30px}
+.pstep-b .res-rows dd{white-space:normal;text-align:left;min-width:0}
+.p-note{margin:10px 0 0;font-size:13px;opacity:.85;line-height:1.75}
+.p-inf{margin-top:12px;width:100%;padding:8px 12px;font-size:14px}
 .lib-group h3{font-size:12.5px;font-weight:700;color:var(--muted);margin:0 0 4px;letter-spacing:.2px}
 .drug-tag{margin:0 0 8px;padding:7px 11px;border-radius:10px;background:var(--accent-soft);font-size:14px;font-weight:700;line-height:1.7}
 .drug-tag.high{background:var(--err-bg);color:var(--err);border:1px solid rgba(179,38,30,.35)}
@@ -289,6 +304,7 @@ select:not([dir="ltr"]){background-position:left 10px center;padding-left:28px!i
   </section>
 
   <nav class="tabs" role="tablist" aria-label="محاسبه‌گرها">
+    <button type="button" role="tab" id="t-prot" aria-controls="tab-prot" data-tab="prot">پروتکل‌ها</button>
     <button type="button" role="tab" id="t-dhv" aria-controls="tab-dhv" data-tab="dhv">حجم تجویز</button>
     <button type="button" role="tab" id="t-wb" aria-controls="tab-wb" data-tab="wb">دوز وزنی</button>
     <button type="button" role="tab" id="t-inf" aria-controls="tab-inf" data-tab="inf">انفوزیون پمپ</button>
@@ -571,6 +587,23 @@ select:not([dir="ltr"]){background-position:left 10px center;padding-left:28px!i
       <div class="result" data-out="maint" aria-live="polite"></div>
       <div class="msgs" data-msgs="maint"></div>
       <p class="note">این فرمول برای نوزادان کاربرد ندارد و کمبود مایع یا دفع مداوم را پوشش نمی‌دهد. شرایط خاص (نارسایی قلب یا کلیه، SIADH) را جداگانه و طبق پروتکل در نظر بگیرید.</p>
+    </div>
+  </section>
+  <!-- ============ Treatment protocols ============ -->
+  <section class="calc" id="tab-prot" role="tabpanel" aria-labelledby="t-prot">
+    <div class="card" data-calc="prot">
+      <div class="card-head">
+        <div><h2>پروتکل‌های درمانی</h2><p class="desc">رژیم‌های استاندارد اورژانس بزرگسال، با دوز، حجم و سرعت پمپ هر مرحله</p></div>
+        <button type="button" class="reset" data-reset>پاک کردن</button>
+      </div>
+      <label class="field"><span class="lbl">پروتکل</span>
+        <span class="inrow solo"><select id="prot-sel"></select></span>
+      </label>
+      <label class="field"><span class="lbl">وزن بیمار <span class="opt" id="prot-w-opt"></span></span>
+        <span class="inrow"><input id="prot-w" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit">kg</span></span>
+      </label>
+      <div class="msgs" data-msgs="prot"></div>
+      <div id="prot-out" aria-live="polite"></div>
     </div>
   </section>
   </main>
@@ -1214,6 +1247,7 @@ var DRUGS = [
 
   function run(k){
     try{
+      if(k === 'prot'){ renderProt(); return; }
       if(SYNC[k]) SYNC[k]();
       var errs = [], x = INPUTS[k](reader(errs)), r = ENGINE[k](x);
       if(errs.length){ r = R(r.main.label, r.main.unit); r.errs = errs; }
@@ -1305,7 +1339,7 @@ var DRUGS = [
      ================================================================= */
   // which unit each field expects
   var FIELD_U = {'dhv-vol':'mL','wb-cv':'mL','inf-vol':'mL','gtt-vol':'mL','dil-a-vol':'mL','dil-v2':'mL',
-                 'inf-w':'kg','r-w':'kg','m-w':'kg','r-h':'cm','gtt-h':'h','gtt-m':'min','r-age':'yr',
+                 'inf-w':'kg','r-w':'kg','m-w':'kg','prot-w':'kg','r-h':'cm','gtt-h':'h','gtt-m':'min','r-age':'yr',
                  'wb-n':'dose','dil-pct':'%','inf-rate':'mL'};
   var FIELD_SEL = {'dhv-dose':'dhv-dose-u','dhv-have':'dhv-have-u','wb-w':'wb-wu','wb-dose':'wb-du','wb-ca':'wb-cu',
                    'inf-amt':'inf-amtu','dil-a-amt':'dil-a-u','dil-c1':'dil-cu','r-scr':'r-scru','r-dm':'r-dmu',
@@ -1511,7 +1545,8 @@ var DRUGS = [
     inf:{weight:'inf-w', dose:'inf-dose', rate:'inf-rate', amt:'inf-amt', vol:'inf-vol'},
     gtt:{vol:'gtt-vol'}, dil:{},
     renal:{weight:'r-w', age:'r-age', height:'r-h', scr:'r-scr', dose:'r-dm'},
-    maint:{weight:'m-w'}
+    maint:{weight:'m-w'},
+    prot:{weight:'prot-w'}
   };
   var KW = {'وزن':'weight','وزنش':'weight',weight:'weight','دوز':'dose','دوزش':'dose',dose:'dose','سرعت':'rate',rate:'rate',
             'سن':'age','سنش':'age',age:'age','قد':'height','قدش':'height',height:'height','کراتینین':'scr',creatinine:'scr',
@@ -1615,6 +1650,184 @@ var DRUGS = [
     var c = e.target.closest('[data-drug]'); if(!c) return;
     var d = DRUGS[+c.dataset.drug]; $('drug').value = d.fa; var t = selectDrug(d, 0);
     $('lib').open = false; scrollToCard(t);
+  });
+
+  /* =================================================================
+     5. TREATMENT PROTOCOLS — standard adult ED regimens.
+     Each protocol returns its steps for weight K.w (NaN when not entered).
+     A step: t title · big main dose · sub per-kg dose · rows [label, value]
+             f worked formula · note · inf (opens the step in the pump calculator)
+     ================================================================= */
+  function stepsKit(w){
+    var has = isFinite(w) && w > 0;
+    return {
+      w: w, has: has,
+      // weight-based dose with optional ceiling → {v, txt, capped}
+      per: function(d, unit, max){
+        if(!has) return {v:NaN, txt:'—', capped:false};
+        var v = d * w, capped = max !== undefined && v > max; if(capped) v = max;
+        return {v:v, txt:fmt(v) + ' ' + unit + (capped ? ' (سقف)' : ''), capped:capped};
+      },
+      n: function(v, unit){ return isFinite(v) ? fmt(v) + (unit ? ' ' + unit : '') : '—'; },
+      rate: function(mL, min){ return mL / min * 60; }
+    };
+  }
+  var PROT_GROUPS = {card:'قلب و احیا', anti:'ضدانعقاد و متابولیک', er:'اورژانس', ob:'مامایی'};
+  var PROTOCOLS = [
+    {id:'amio', g:'card', fa:'آمیودارون — آریتمی با نبض', en:'Amiodarone · stable VT / AF', src:'AHA ACLS', w:false,
+     ind:'تاکی‌کاردی بطنی پایدار با نبض یا کنترل ریت/ریتم AF. در بیمار ناپایدار کاردیوورژن مقدم است.',
+     note:'حداکثر حدود 2.2 g در ۲۴ ساعت. ترجیحاً در D5W؛ غلظت بیش از 2 mg/mL فقط از ورید مرکزی. مانیتورینگ قلبی و فشار خون.',
+     steps:function(K){ return [
+      {t:'دوز بارگیری', big:'150 mg', rows:[['حجم از آمپول 150 mg/3 mL','3 mL'],['رقیق در','100 mL D5W'],['مدت','10 دقیقه'],['سرعت پمپ',K.n(K.rate(100,10),'mL/h')]],
+       f:['100 mL ÷ 10 min × 60 = 600 mL/h'], note:'در صورت عود آریتمی قابل تکرار است.'},
+      {t:'انفوزیون ۶ ساعت اول', big:'1 mg/min', rows:[['آماده‌سازی','900 mg (18 mL) در 500 mL D5W'],['غلظت','1.8 mg/mL'],['سرعت پمپ',K.n(60/1.8,'mL/h')],['مدت','6 ساعت'],['مقدار دارو','360 mg']],
+       f:['1 mg/min × 60 ÷ 1.8 mg/mL = '+fmt(60/1.8)+' mL/h'], inf:{name:'آمیودارون', a:900, u:'mg', v:500, du:'mg/min', dose:1}},
+      {t:'انفوزیون ۱۸ ساعت بعد', big:'0.5 mg/min', rows:[['همان محلول','1.8 mg/mL'],['سرعت پمپ',K.n(30/1.8,'mL/h')],['مدت','18 ساعت'],['مقدار دارو','540 mg']],
+       f:['0.5 mg/min × 60 ÷ 1.8 mg/mL = '+fmt(30/1.8)+' mL/h'], inf:{name:'آمیودارون', a:900, u:'mg', v:500, du:'mg/min', dose:0.5}}
+    ]; }},
+    {id:'amio-arrest', g:'card', fa:'آمیودارون — ایست قلبی', en:'Amiodarone · shock-refractory VF / pVT', src:'AHA ACLS', w:false,
+     ind:'فیبریلاسیون بطنی یا VT بدون نبض که به شوک پاسخ نداده است.',
+     steps:function(K){ return [
+      {t:'دوز اول — پس از شوک سوم', big:'300 mg', rows:[['حجم','6 mL (دو آمپول 150 mg/3 mL)'],['روش','بولوس سریع IV/IO + فلاش 20 mL']]},
+      {t:'دوز دوم — پس از شوک پنجم', big:'150 mg', rows:[['حجم','3 mL (یک آمپول)'],['روش','بولوس سریع IV/IO + فلاش 20 mL']]}
+    ]; }},
+    {id:'adenosine', g:'card', fa:'آدنوزین — SVT', en:'Adenosine · regular narrow-complex SVT', src:'AHA ACLS', w:false,
+     ind:'تاکی‌کاردی فوق‌بطنی منظم با کمپلکس باریک، پس از مانور واگ ناموفق.',
+     note:'از نزدیک‌ترین ورید بزرگ به قلب با سه‌راهی و فلاش فوری. نوار ریتم ثبت شود. در آسم شدید با احتیاط.',
+     steps:function(K){ return [
+      {t:'دوز اول', big:'6 mg', rows:[['حجم از آمپول 6 mg/2 mL','2 mL'],['روش','بولوس سریع + فلاش 20 mL نرمال سالین']]},
+      {t:'دوز دوم (در صورت عدم پاسخ پس از ۱–۲ دقیقه)', big:'12 mg', rows:[['حجم','4 mL'],['روش','بولوس سریع + فلاش 20 mL']]},
+      {t:'دوز سوم (در صورت نیاز)', big:'12 mg', rows:[['حجم','4 mL']]}
+    ]; }},
+
+    {id:'hep-vte', g:'anti', fa:'هپارین — ترومبوآمبولی وریدی (DVT/PE)', en:'Heparin · weight-based VTE nomogram', src:'Raschke nomogram', w:true, high:true,
+     ind:'درمان DVT یا آمبولی ریه با هپارین وریدی.',
+     note:'aPTT شش ساعت پس از شروع و تنظیم طبق نوموگرام بخش. سقف بولوس و انفوزیون را طبق پروتکل مرکز رعایت کنید.',
+     steps:function(K){ var b = K.per(80,'units'), i = K.per(18,'units/h'); return [
+      {t:'بولوس', big:b.txt, sub:'80 units/kg', rows:[['حجم از ویال 5000 units/mL',K.n(b.v/5000,'mL')],['روش','IV آهسته']], f:K.has?['80 units/kg × '+fmt(K.w)+' kg = '+fmt(b.v)+' units',fmt(b.v)+' ÷ 5000 units/mL = '+fmt(b.v/5000)+' mL']:[]},
+      {t:'انفوزیون', big:i.txt, sub:'18 units/kg/h', rows:[['آماده‌سازی','25,000 units در 50 mL (500 units/mL)'],['سرعت پمپ',K.n(i.v/500,'mL/h')]],
+       f:K.has?['18 × '+fmt(K.w)+' kg = '+fmt(i.v)+' units/h ÷ 500 units/mL = '+fmt(i.v/500)+' mL/h']:[], inf:{name:'هپارین', high:true, a:25000, u:'units', v:50, du:'units/kg/h', dose:18}}
+    ]; }},
+    {id:'hep-acs', g:'anti', fa:'هپارین — سندرم حاد کرونری', en:'Heparin · ACS (UA/NSTEMI)', src:'ACC/AHA', w:true, high:true,
+     ind:'آنژین ناپایدار یا NSTEMI که هپارین وریدی گرفته است.',
+     note:'aPTT هدف طبق پروتکل (معمولاً 1.5–2 برابر کنترل). با ترومبولیتیک پروتکل جداگانه دارد.',
+     steps:function(K){ var b = K.per(60,'units',4000), i = K.per(12,'units/h',1000); return [
+      {t:'بولوس', big:b.txt, sub:'60 units/kg — حداکثر 4000 units', rows:[['حجم از ویال 5000 units/mL',K.n(b.v/5000,'mL')]], f:K.has?['60 × '+fmt(K.w)+' kg = '+fmt(60*K.w)+' units'+(b.capped?' → سقف 4000':'')]:[]},
+      {t:'انفوزیون', big:i.txt, sub:'12 units/kg/h — حداکثر 1000 units/h', rows:[['آماده‌سازی','25,000 units در 50 mL (500 units/mL)'],['سرعت پمپ',K.n(i.v/500,'mL/h')]],
+       f:K.has?['12 × '+fmt(K.w)+' kg = '+fmt(12*K.w)+' units/h'+(i.capped?' → سقف 1000':'')+' ÷ 500 = '+fmt(i.v/500)+' mL/h']:[],
+       inf:i.capped ? {name:'هپارین', high:true, a:25000, u:'units', v:50, du:'units/h', dose:1000} : {name:'هپارین', high:true, a:25000, u:'units', v:50, du:'units/kg/h', dose:12}}
+    ]; }},
+    {id:'dka', g:'anti', fa:'انسولین — کتواسیدوز دیابتی (DKA)', en:'Insulin · adult DKA', src:'ADA consensus', w:true, high:true,
+     ind:'DKA بزرگسال پس از شروع مایع‌درمانی.',
+     note:'پیش از شروع انسولین پتاسیم باید دست‌کم 3.3 mEq/L باشد. قند خون هر ساعت. کنترل دوم انسولین الزامی است.',
+     steps:function(K){ var b = K.per(0.1,'units'), i = K.per(0.1,'units/h'); return [
+      {t:'بولوس (اختیاری)', big:b.txt, sub:'0.1 units/kg IV', rows:[['روش','با سرنگ انسولین از ویال 100 units/mL'],['اگر بولوس نمی‌دهید','انفوزیون را 0.14 units/kg/h شروع کنید']]},
+      {t:'انفوزیون', big:i.txt, sub:'0.1 units/kg/h', rows:[['آماده‌سازی','50 units رگولار در 50 mL نرمال سالین (1 unit/mL)'],['سرعت پمپ',K.n(i.v,'mL/h')]],
+       f:K.has?['0.1 × '+fmt(K.w)+' kg = '+fmt(i.v)+' units/h ÷ 1 unit/mL = '+fmt(i.v)+' mL/h']:[], inf:{name:'انسولین رگولار', high:true, a:50, u:'units', v:50, du:'units/kg/h', dose:0.1}},
+      {t:'وقتی قند به 250 mg/dL رسید', big:K.has ? fmt(0.02*K.w)+'–'+fmt(0.05*K.w)+' units/h' : '—', sub:'0.02–0.05 units/kg/h', rows:[['سرعت پمپ',K.has ? fmt(0.02*K.w)+'–'+fmt(0.05*K.w)+' mL/h' : '—'],['همراه با','دکستروز 5٪ به مایع نگهدارنده']]}
+    ]; }},
+
+    {id:'status', g:'er', fa:'تشنج مداوم (Status epilepticus)', en:'Status epilepticus · adult', src:'AES 2016 · ESETT', w:true,
+     ind:'تشنج بیش از ۵ دقیقه یا تشنج‌های پشت سر هم بدون بازگشت هوشیاری.',
+     note:'راه هوایی، اکسیژن و قند خون را هم‌زمان کنترل کنید. اگر پس از مرحله دوم ادامه یافت، مرحله سوم (بیهوشی و انتوباسیون) طبق پروتکل.',
+     steps:function(K){ var dz = K.per(0.2,'mg',10), lev = K.per(60,'mg',4500), ph = K.per(20,'mg',1500); return [
+      {t:'مرحله اول: دیازپام وریدی', big:dz.txt, sub:'0.2 mg/kg — حداکثر 10 mg', rows:[['حجم از آمپول 10 mg/2 mL',K.n(dz.v/5,'mL')],['سرعت','حداکثر 5 mg/min'],['تکرار','یک بار پس از ۵ دقیقه'],['بدون رگ','میدازولام 10 mg عضلانی (2 mL) برای بالای 40 kg']]},
+      {t:'مرحله دوم (یکی): لوتیراستام', big:lev.txt, sub:'60 mg/kg — حداکثر 4500 mg', rows:[['حجم از 500 mg/5 mL',K.n(lev.v/100,'mL')],['رقیق در','100 mL نرمال سالین'],['مدت','10–15 دقیقه']]},
+      {t:'مرحله دوم (یکی): فنی‌توئین', big:ph.txt, sub:'20 mg/kg — حداکثر 1500 mg', rows:[['حجم از 50 mg/mL',K.n(ph.v/50,'mL')],['حداکثر سرعت','50 mg/min'],['حداقل مدت',K.n(ph.v/50,'دقیقه')],['حلال','فقط نرمال سالین؛ مانیتورینگ قلبی']]}
+    ]; }},
+    {id:'rsi', g:'er', fa:'لوله‌گذاری سریع (RSI)', en:'Rapid sequence intubation · adult', src:'دوزهای رایج اورژانس', w:true,
+     ind:'یک داروی القایی و یک شل‌کننده انتخاب کنید.',
+     note:'در بیمار ناپایدار دوز القایی را کاهش دهید. در چاقی، وزن مناسب هر دارو (واقعی یا ایده‌آل) را طبق پروتکل انتخاب کنید.',
+     steps:function(K){ var kt = K.per(1.5,'mg'), et = K.per(0.3,'mg'), pr = K.per(1.5,'mg'), rc = K.per(1.2,'mg'), fn = K.per(2,'mcg'); return [
+      {t:'القا: کتامین', big:kt.txt, sub:'1.5 mg/kg (1–2)', rows:[['حجم از 50 mg/mL',K.n(kt.v/50,'mL')]]},
+      {t:'القا: اتومیدیت', big:et.txt, sub:'0.3 mg/kg', rows:[['حجم از 2 mg/mL',K.n(et.v/2,'mL')]]},
+      {t:'القا: پروپوفول', big:pr.txt, sub:'1.5 mg/kg (1–2.5)', rows:[['حجم از 10 mg/mL',K.n(pr.v/10,'mL')],['احتیاط','افت فشار']]},
+      {t:'شل‌کننده: روکورونیوم', big:rc.txt, sub:'1.2 mg/kg', rows:[['حجم از 10 mg/mL',K.n(rc.v/10,'mL')]]},
+      {t:'پیش‌درمان (اختیاری): فنتانیل', big:fn.txt, sub:'2 mcg/kg (1–3)', rows:[['حجم از 50 mcg/mL',K.n(fn.v/50,'mL')]]}
+    ]; }},
+    {id:'anaph', g:'er', fa:'آنافیلاکسی — اپی‌نفرین', en:'Anaphylaxis · epinephrine', src:'WAO · Resus Council UK', w:true, high:true,
+     ind:'آنافیلاکسی: اپی‌نفرین عضلانی داروی خط اول است.',
+     note:'هرگز آمپول 1 mg/mL را بدون رقیق‌سازی وریدی تزریق نکنید. مایع وریدی و وضعیت خوابیده با پای بالا.',
+     steps:function(K){ var im = K.per(0.01,'mg',0.5); return [
+      {t:'اپی‌نفرین عضلانی', big:im.txt, sub:'0.01 mg/kg — حداکثر 0.5 mg', rows:[['حجم از آمپول 1 mg/mL (1:1000)',K.n(im.v,'mL')],['محل','عضله قدامی‌خارجی ران'],['تکرار','هر ۵ دقیقه در صورت نیاز']]},
+      {t:'مقاوم به دو دوز عضلانی: انفوزیون', big:'0.05 mcg/kg/min', sub:'شروع؛ تیتره طبق پاسخ', rows:[['آماده‌سازی','4 mg در 50 mL (80 mcg/mL)'],['سرعت پمپ شروع',K.n(K.has ? 0.05*K.w*60/80 : NaN,'mL/h')]],
+       f:K.has?['0.05 × '+fmt(K.w)+' kg × 60 ÷ 80 mcg/mL = '+fmt(0.05*K.w*60/80)+' mL/h']:[], inf:{name:'اپی‌نفرین', high:true, a:4, u:'mg', v:50, du:'mcg/kg/min', dose:0.05}}
+    ]; }},
+    {id:'txa', g:'er', fa:'ترانگزامیک اسید — ترومای خونریزی‌دهنده', en:'Tranexamic acid · trauma (CRASH-2)', src:'CRASH-2', w:false,
+     ind:'خونریزی قابل‌توجه در تروما، فقط تا ۳ ساعت از زمان آسیب.',
+     steps:function(K){ return [
+      {t:'دوز بارگیری', big:'1 g', rows:[['حجم از 500 mg/5 mL','10 mL (دو آمپول)'],['رقیق در','100 mL نرمال سالین'],['مدت','10 دقیقه'],['سرعت پمپ',K.n(K.rate(100,10),'mL/h')]]},
+      {t:'نگهدارنده', big:'1 g', rows:[['رقیق در','500 mL نرمال سالین'],['مدت','8 ساعت'],['سرعت پمپ',K.n(500/8,'mL/h')]], f:['500 mL ÷ 8 h = '+fmt(500/8)+' mL/h']}
+    ]; }},
+
+    {id:'mg-ecl', g:'ob', fa:'منیزیم سولفات — پره‌اکلامپسی شدید / اکلامپسی', en:'Magnesium sulfate · Zuspan regimen', src:'WHO · ACOG', w:false, high:true,
+     ind:'پیشگیری و درمان تشنج در پره‌اکلامپسی شدید و اکلامپسی.',
+     note:'هر ساعت: رفلکس پاتلا، تعداد تنفس (بیش از 12)، ادرار (بیش از 30 mL/h). پادزهر: کلسیم گلوکونات 1 g (10 mL از ۱۰٪) آهسته. تشنج مجدد: 2 g دیگر در ۵ دقیقه.',
+     steps:function(K){ return [
+      {t:'دوز بارگیری', big:'4 g', rows:[['حجم از ویال ۵۰٪ (500 mg/mL)','8 mL'],['رقیق تا حجم کل','100 mL نرمال سالین'],['مدت','20 دقیقه'],['سرعت پمپ',K.n(K.rate(100,20),'mL/h')]]},
+      {t:'نگهدارنده', big:'1 g/h', rows:[['آماده‌سازی','10 g (20 mL از ۵۰٪) تا حجم کل 500 mL = 20 mg/mL'],['سرعت پمپ',K.n(1000/20,'mL/h')],['مدت','تا ۲۴ ساعت پس از زایمان یا آخرین تشنج']],
+       f:['1000 mg/h ÷ 20 mg/mL = 50 mL/h'], inf:{name:'منیزیم سولفات', high:true, a:10, u:'g', v:500, du:'mg/h', dose:1000}}
+    ]; }}
+  ];
+
+  // fill the protocol menu
+  (function(){
+    var sel = $('prot-sel');
+    sel.innerHTML = Object.keys(PROT_GROUPS).map(function(g){
+      return '<optgroup label="'+esc(PROT_GROUPS[g])+'">' + PROTOCOLS.map(function(p, i){
+        return p.g !== g ? '' : '<option value="'+p.id+'"'+(i === 0 ? ' selected' : '')+'>'+esc(p.fa)+'</option>';
+      }).join('') + '</optgroup>';
+    }).join('');
+  })();
+
+  // Escape text and isolate Latin runs («150 mg/3 mL») so they keep their order inside Persian sentences.
+  function bidi(t){
+    var re = /[0-9A-Za-zµ][0-9A-Za-zµ.,%()\/:·+×\-– ]*[0-9A-Za-zµ%)]|[0-9A-Za-z]/g, out = '', last = 0, m;
+    t = String(t);
+    while((m = re.exec(t))){ out += esc(t.slice(last, m.index)) + '<bdi dir="ltr">' + esc(m[0]) + '</bdi>'; last = re.lastIndex; }
+    return out + esc(t.slice(last));
+  }
+  var protSteps = [], protW = NaN;
+  function renderProt(){
+    var p = PROTOCOLS.filter(function(x){ return x.id === val('prot-sel'); })[0] || PROTOCOLS[0];
+    var errs = [], w = reader(errs)('prot-w'), K = stepsKit(w);
+    $('prot-w-opt').textContent = p.w ? '(لازم)' : '(برای این پروتکل لازم نیست)';
+    protSteps = p.steps(K); protW = K.has ? w : NaN;
+    var h = '<div class="p-head'+(p.high ? ' high' : '')+'"><div class="p-title">'+esc(p.fa)+(p.high ? ' <span class="hi-badge">پرخطر</span>' : '')+'</div>'+
+      '<bdi dir="ltr" class="p-en">'+esc(p.en)+'</bdi><div class="p-ind">'+bidi(p.ind)+'</div></div>';
+    h += protSteps.map(function(s, i){
+      var rows = s.rows || [];
+      if(s.sub) rows = [['دوز', s.sub]].concat(rows);
+      return '<div class="pstep"><div class="pstep-h"><span class="pnum">'+(i+1)+'</span><span class="pstep-t">'+bidi(s.t)+'</span></div>'+
+        '<div class="result pstep-b'+(s.big === '—' ? ' is-empty' : '')+'"><div class="res-val"><bdi dir="ltr">'+esc(s.big)+'</bdi></div>'+
+        (rows.length ? '<dl class="res-rows">'+rows.map(function(r){ return '<div><dt>'+bidi(r[0])+'</dt><dd>'+bidi(r[1])+'</dd></div>'; }).join('')+'</dl>' : '')+
+        (s.f && s.f.length ? '<div class="formula" dir="ltr"><span class="formula-cap">نحوه محاسبه</span>'+esc(s.f.join('\n'))+'</div>' : '')+
+        (s.note ? '<p class="p-note">'+bidi(s.note)+'</p>' : '')+
+        (s.inf ? '<button type="button" class="vt-btn p-inf" data-pi="'+i+'">باز کردن در انفوزیون پمپ ←</button>' : '')+
+        '</div></div>';
+    }).join('');
+    if(p.note) h += '<p class="note">'+bidi(p.note)+'</p>';
+    h += '<p class="note">مرجع: <bdi dir="ltr">'+esc(p.src)+'</bdi> — دوزها و رقیق‌سازی را با پروتکل بخش و بروشور دارو تطبیق دهید.</p>';
+    $('prot-out').innerHTML = h;
+    var list = [];
+    errs.forEach(function(m){ list.push(['err','!','خطا',m]); });
+    if(p.w && !K.has && !errs.length) list.push(['info','i','اطلاعات','این پروتکل وزنی است؛ وزن بیمار را وارد کنید تا دوز و حجم هر مرحله حساب شود.']);
+    if(K.has && (w < 0.3 || w > 250)) list.push(['warn','!','هشدار',WEIGHT_WARN]);
+    if(p.high) list.push(['warn','!','هشدار','داروی پرخطر — کنترل با همکار دوم.']);
+    document.querySelector('[data-msgs="prot"]').innerHTML = list.map(function(x){
+      return '<div class="msg '+x[0]+'" role="'+(x[0] === 'info' ? 'status' : 'alert')+'"><span class="mi" aria-label="'+x[2]+'">'+x[1]+'</span><span>'+esc(x[3])+'</span></div>';
+    }).join('');
+  }
+  $('prot-out').addEventListener('click', function(e){
+    var b = e.target.closest('[data-pi]'); if(!b) return;
+    var o = protSteps[+b.dataset.pi].inf; if(!o) return;
+    showTab('inf');
+    var card = document.querySelector('[data-calc="inf"]'); resetCard(card);
+    $('inf-amt').value = o.a; $('inf-amtu').value = o.u; $('inf-vol').value = o.v; $('inf-du').value = o.du; $('inf-dose').value = o.dose;
+    if(isFinite(protW)) $('inf-w').value = protW;
+    run('inf');
+    setTag('inf', '💊 ' + o.name + ' (از پروتکل)' + (o.high ? ' — ⚠️ ' + HIGH_TXT : ''), o.high);
+    scrollToCard('inf');
   });
 
   /* ---------- toast ---------- */
@@ -1744,6 +1957,7 @@ var DRUGS = [
   try{ saved = localStorage.getItem('medcalc-tab'); }catch(e){}
   showTab(tabs.some(function(t){ return t.dataset.tab === saved; }) ? saved : 'dhv');
   Object.keys(ENGINE).forEach(run);
+  run('prot');
 
   try{
     if('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && window.top === window.self)

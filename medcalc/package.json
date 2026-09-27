@@ -1,0 +1,16 @@
+{
+  "name": "medcalc",
+  "version": "1.0.0",
+  "private": true,
+  "description": "محاسبه‌گر دارویی بالینی — تک‌فایل، بدون build",
+  "scripts": {
+    "test": "node --test tests/logic.test.js",
+    "test:ui": "playwright test tests/ui.spec.js",
+    "icons": "node tests/make-icons.js",
+    "serve": "npx --yes http-server -p 8080 -c-1 ."
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "jsdom": "^26.1.0"
+  }
+}

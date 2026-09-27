@@ -1,0 +1,1759 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>محاسبه‌گر دارویی بالینی</title>
+<meta name="description" content="محاسبات دارویی بر بالین بیمار برای پرستاران و پزشکان، با ورود صوتی فارسی و انگلیسی">
+<meta name="theme-color" content="#151c2c">
+<meta name="color-scheme" content="light dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="محاسبه‌گر دارویی">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+/* ---------- tokens ---------- */
+:root{
+  --bg:#eceef3; --surface:#ffffff; --surface-2:#f4f6fa; --text:#141b2b; --muted:#5a6275; --line:#d6dbe6;
+  --accent:#1d2c4d; --accent-ink:#ffffff; --accent-soft:#dde3f0; --gold:#a8823a;
+  --warn-bg:#fdf1dc; --warn:#8a4a05; --err-bg:#fbe4e4; --err:#9b1c1c; --info-bg:#e6ebf5; --info:#1e2d4f;
+  --pump:#151c2c; --pump-2:#1c2640; --pump-ink:#f1ead8; --pump-digit:#e6c77f; --pump-line:rgba(230,199,127,.22);
+  --shadow:0 1px 2px rgba(20,27,43,.06),0 4px 16px rgba(20,27,43,.06);
+  --brand:#151c2c; --brand-gold:#e3c47e; --brand-ink:#ebe3cf;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1320; --surface:#161d2e; --surface-2:#1c2438; --text:#e6e9f0; --muted:#9aa3b8; --line:#2a3550;
+    --accent:#d8b46a; --accent-ink:#151c2c; --accent-soft:#3a3322; --gold:#d8b46a;
+    --warn-bg:#35270f; --warn:#f8d59a; --err-bg:#3b1717; --err:#fec9c9; --info-bg:#1a2440; --info:#c9d6f2;
+    --pump:#0a0f1c; --pump-2:#121a2e; --pump-line:rgba(230,199,127,.18);
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1320; --surface:#161d2e; --surface-2:#1c2438; --text:#e6e9f0; --muted:#9aa3b8; --line:#2a3550;
+  --accent:#d8b46a; --accent-ink:#151c2c; --accent-soft:#3a3322; --gold:#d8b46a;
+  --warn-bg:#35270f; --warn:#f8d59a; --err-bg:#3b1717; --err:#fec9c9; --info-bg:#1a2440; --info:#c9d6f2;
+  --pump:#0a0f1c; --pump-2:#121a2e; --pump-line:rgba(230,199,127,.18);
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+  color-scheme:dark;
+}
+
+/* ---------- base ---------- */
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:calc(64px + env(safe-area-inset-top,0px))}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Vazirmatn",Tahoma,system-ui,sans-serif;line-height:1.6;
+  padding-bottom:env(safe-area-inset-bottom,0px)}
+button,input,select{font:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+bdi{unicode-bidi:isolate}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px 120px}
+
+/* ---------- brand header ---------- */
+.brandbar{background:var(--brand);border-bottom:2px solid #b8924a;padding-top:env(safe-area-inset-top,0px);
+  padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.brand-in{max-width:640px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;gap:16px;position:relative}
+.brand-logo{height:110px;width:auto;display:block;flex:0 0 auto}
+.brand-text{min-width:0}
+.dr-name{margin:0;font-size:22px;font-weight:800;line-height:1.35;color:var(--brand-gold)}
+.dr-cred{margin:6px 0 0;padding-top:6px;border-top:1px solid rgba(227,196,126,.35);font-size:14px;line-height:1.8;color:var(--brand-ink)}
+.theme-btn{position:absolute;top:10px;left:12px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(227,196,126,.4);
+  background:transparent;color:var(--brand-gold);display:grid;place-items:center;padding:0}
+.theme-btn svg{width:18px;height:18px}
+
+/* ---------- title / notices ---------- */
+.apptitle{padding:16px 2px 0}
+h1{font-size:20px;line-height:1.35;margin:0;font-weight:800;text-wrap:balance}
+.sub{margin:2px 0 0;font-size:13.5px;color:var(--muted)}
+.notice{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--text);margin:12px 0 0;padding:10px 12px;
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;line-height:1.75}
+.notice svg{flex:0 0 auto;width:20px;height:20px;color:var(--gold);margin-top:2px}
+.voicebar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;flex-wrap:wrap}
+.vb-label{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--accent)}
+.vb-label svg{width:18px;height:18px}
+.vb-help{font-size:12.5px;color:var(--muted);margin:6px 2px 0;line-height:1.75}
+
+/* ---------- cards ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);scroll-margin-top:calc(70px + env(safe-area-inset-top,0px))}
+.card + .card{margin-top:14px}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}
+h2{font-size:17px;line-height:1.4;margin:0 0 2px;font-weight:800;text-wrap:balance}
+.desc{margin:0;font-size:13px;color:var(--muted)}
+.reset{flex:0 0 auto;font-size:13px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:5px 11px}
+.reset:hover{color:var(--text)}
+
+/* ---------- fields ---------- */
+.field{display:block;margin:12px 0 0;min-width:0}
+.lbl{display:block;font-size:13.5px;font-weight:500;margin-bottom:5px}
+.opt{color:var(--muted);font-weight:400;font-size:12px}
+.inrow{display:flex;align-items:stretch;min-height:50px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;overflow:hidden;
+  transition:border-color .15s,box-shadow .15s}
+.inrow:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.inrow.bad{border-color:var(--err)}
+.inrow input{flex:1 1 0;width:0;min-width:0;border:0;background:transparent;color:var(--text);font-size:19px;font-weight:700;
+  padding:9px 12px;text-align:left;outline:none;font-variant-numeric:tabular-nums}
+.inrow input.bad{color:var(--err)}
+.inrow select,.inrow .unit{flex:0 0 auto;max-width:48%;border:0;border-inline-start:1px solid var(--line);background-color:var(--surface);color:var(--text);
+  font-size:15px;padding:0 12px;min-width:54px;display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inrow .unit{color:var(--muted);font-size:14.5px}
+.inrow.solo select{flex:1;max-width:none;border-inline-start:0;background-color:transparent;min-height:48px;justify-content:flex-start}
+select{appearance:none;-webkit-appearance:none;border-radius:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238a93a6' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-size:10px 6px}
+select[dir="ltr"]{background-position:right 10px center;padding-right:28px!important}
+select:not([dir="ltr"]){background-position:left 10px center;padding-left:28px!important}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
+.subhead{font-size:13.5px;font-weight:700;color:var(--accent);margin:18px 0 0;padding-top:12px;border-top:1px dashed var(--line)}
+.hint{display:block;font-size:12.5px;color:var(--muted);margin:6px 2px 0;line-height:1.75}
+@media (max-width:480px){.grid2:not(.tight){grid-template-columns:minmax(0,1fr)}}
+@media (max-width:330px){.grid2{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:480px){
+  .grid2.tight .inrow .mic{width:36px}
+  .grid2.tight .inrow .unit,.grid2.tight .inrow select{min-width:0;padding:0 8px;font-size:14px}
+  .grid2.tight .inrow input{padding:9px 8px}
+}
+
+/* mic button (always on the right, i.e. first in RTL) */
+.inrow .mic{order:-1;flex:0 0 auto;width:46px;border:0;border-inline-end:1px solid var(--line);background:transparent;color:var(--accent);display:grid;place-items:center;padding:0}
+.inrow .mic svg{width:20px;height:20px;pointer-events:none}
+.inrow .mic.on{background:#c62828;color:#fff;animation:micpulse 1.1s ease-in-out infinite}
+@keyframes micpulse{0%,100%{box-shadow:inset 0 0 0 0 rgba(255,255,255,0)}50%{box-shadow:inset 0 0 0 5px rgba(255,255,255,.3)}}
+.inrow.filled{animation:filled 1.6s ease-out}
+@keyframes filled{0%{background:var(--accent-soft);border-color:var(--gold);box-shadow:0 0 0 3px var(--accent-soft)}100%{background:var(--surface-2)}}
+
+/* segmented control */
+.seg{display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px;margin:8px 0 2px}
+.seg button{flex:1;font-size:14px;border:0;border-radius:9px;padding:8px 6px;background:transparent;color:var(--muted);min-height:40px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--text);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.16)}
+.seg.sm{margin:0;flex:0 0 auto}
+.seg.sm button{flex:0 0 auto;padding:4px 14px;font-size:13.5px;min-height:34px}
+
+/* ---------- drug box ---------- */
+.drugbox{margin-top:16px}
+.inrow input.txt{text-align:start;font-weight:500;font-size:17px}
+.inrow .go{flex:0 0 auto;border:0;background:var(--accent);color:var(--accent-ink);font-size:15px;font-weight:700;padding:0 18px}
+.drug-info{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line)}
+.drug-info.high{border-color:var(--err);background:var(--err-bg)}
+.drug-name{font-weight:800;font-size:16px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px}
+.drug-name bdi{font-weight:500;color:var(--muted);font-size:13.5px}
+.hi-badge{font-size:11.5px;font-weight:700;color:#fff;background:#b3261e;border-radius:6px;padding:1px 7px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 4px}
+.chip{font-size:13.5px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--text);min-height:34px}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.chip.hi{border-color:rgba(179,38,30,.55);color:var(--err)}
+.drug-prep{font-size:14px;margin-top:6px}
+.drug-note{font-size:13px;color:var(--muted);margin-top:4px}
+.drug-note.high{color:var(--err);font-weight:700}
+.drug-warn{font-size:12.5px;color:var(--warn);margin-top:6px}
+.lib{margin-top:12px;border-top:1px dashed var(--line);padding-top:8px}
+.lib summary{cursor:pointer;font-size:14px;font-weight:700;color:var(--accent);padding:4px 0;list-style:none;display:flex;align-items:center;gap:6px}
+.lib summary::-webkit-details-marker{display:none}
+.lib summary::before{content:"";width:8px;height:8px;border-inline-start:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .15s;margin-inline-end:2px}
+.lib[open] summary::before{transform:rotate(-45deg)}
+.lib-group{margin-top:8px}
+.lib-group h3{font-size:12.5px;font-weight:700;color:var(--muted);margin:0 0 4px;letter-spacing:.2px}
+.drug-tag{margin:0 0 8px;padding:7px 11px;border-radius:10px;background:var(--accent-soft);font-size:14px;font-weight:700;line-height:1.7}
+.drug-tag.high{background:var(--err-bg);color:var(--err);border:1px solid rgba(179,38,30,.35)}
+
+/* ---------- tabs ---------- */
+.tabs{position:sticky;top:0;z-index:10;display:flex;gap:8px;overflow-x:auto;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;margin:14px -16px 4px;
+  background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:0 0 auto;font-size:14px;font-weight:500;padding:7px 15px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--text);white-space:nowrap;min-height:38px}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.calc{display:none}
+.calc.active{display:block}
+
+/* ---------- result: infusion-pump style readout ---------- */
+.result{margin-top:16px;background:linear-gradient(180deg,var(--pump-2),var(--pump));color:var(--pump-ink);border-radius:16px;padding:14px 16px 16px;
+  border:1px solid var(--pump-line);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.res-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.res-label{font-size:13px;opacity:.82}
+.res-led{width:8px;height:8px;border-radius:50%;background:#4a5570;flex:0 0 auto}
+.result:not(.is-empty) .res-led{background:#7bd88f;box-shadow:0 0 8px #7bd88f}
+.result.has-err .res-led{background:#ff6b6b;box-shadow:0 0 8px #ff6b6b}
+.res-val{font-size:36px;font-weight:800;line-height:1.3;color:var(--pump-digit);font-variant-numeric:tabular-nums;letter-spacing:.3px;
+  text-shadow:0 0 18px rgba(230,199,127,.25);overflow-wrap:anywhere}
+.res-val small{font-size:15px;font-weight:500;color:var(--pump-ink);opacity:.8;text-shadow:none}
+.result.is-empty .res-val{opacity:.35}
+.res-hint{font-size:12.5px;opacity:.65}
+.res-rows{margin:12px 0 0;padding-top:10px;border-top:1px solid var(--pump-line);display:grid;gap:6px}
+.res-rows div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:14px}
+.res-rows dt{opacity:.8;min-width:0}
+.res-rows dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.res-rows dd.hl{color:var(--pump-digit)}
+.res-rows small{font-weight:400;opacity:.75}
+.formula{margin:12px 0 0;padding:9px 12px;background:rgba(255,255,255,.05);border:1px solid var(--pump-line);border-radius:10px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.8;white-space:pre-wrap;word-break:break-word;text-align:left}
+.formula-cap{display:block;font-family:"Vazirmatn",Tahoma,sans-serif;font-size:11.5px;opacity:.65;text-align:right;direction:rtl;margin-bottom:2px;letter-spacing:.2px}
+
+/* ---------- messages ---------- */
+.msgs{display:grid;gap:8px;margin-top:10px}
+.msgs:empty{display:none}
+.msg{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;padding:9px 12px;border-radius:10px;line-height:1.7}
+.msg .mi{flex:0 0 auto;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;margin-top:2px}
+.msg.err{background:var(--err-bg);color:var(--err)}
+.msg.err .mi{background:#b3261e;color:#fff}
+.msg.warn{background:var(--warn-bg);color:var(--warn)}
+.msg.warn .mi{background:#c77c02;color:#fff}
+.msg.info{background:var(--info-bg);color:var(--info)}
+.msg.info .mi{background:#3a5a9b;color:#fff}
+.note{font-size:12.5px;color:var(--muted);margin:12px 2px 0;line-height:1.8}
+.foot{font-size:13px;color:var(--muted);margin-top:22px;line-height:1.9;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.foot h2{font-size:15px;color:var(--text);margin-bottom:4px}
+.foot ul{margin:0;padding-inline-start:18px}
+.credit{text-align:center;font-size:12px;color:var(--muted);margin-top:14px}
+
+/* ---------- toast + keyboard-dictation sheet ---------- */
+.vtoast-wrap,.vsheet-wrap{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;padding:0 12px calc(12px + env(safe-area-inset-bottom,0px))}
+.vtoast-wrap{z-index:30;pointer-events:none}
+.vsheet-wrap{z-index:40}
+.vtoast{pointer-events:auto;width:100%;max-width:560px;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;
+  background:#151c2c;color:#f1ead8;box-shadow:0 8px 28px rgba(0,0,0,.32);border:1px solid rgba(227,196,126,.35)}
+.vt-ic{flex:0 0 auto;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:15px}
+.vtoast.listen .vt-ic{background:#c62828;animation:micpulse2 1.1s infinite}
+.vtoast.ok .vt-ic{background:#e3c47e;color:#151c2c}
+.vtoast.err .vt-ic{background:#e05252;color:#fff}
+.vtoast.info .vt-ic{background:#8fb0e8;color:#151c2c}
+@keyframes micpulse2{0%,100%{box-shadow:0 0 0 0 rgba(198,40,40,.6)}50%{box-shadow:0 0 0 7px rgba(198,40,40,0)}}
+.vt-body{flex:1;min-width:0}
+.vt-title{font-size:14.5px;font-weight:700;line-height:1.55}
+.vt-text{font-size:13px;opacity:.88;line-height:1.65;overflow-wrap:anywhere}
+.vt-btns{display:flex;flex-direction:column;gap:6px;flex:0 0 auto}
+.vt-btn{font-size:13px;border:1px solid rgba(227,196,126,.5);background:transparent;color:#e3c47e;border-radius:8px;padding:5px 12px;white-space:nowrap}
+.vsheet{width:100%;max-width:560px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:0 -6px 30px rgba(0,0,0,.28)}
+.vs-head{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:15px}
+.vs-hint{font-size:13px;color:var(--muted);margin:6px 0 10px}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+
+<header class="brandbar">
+  <div class="brand-in">
+    <img class="brand-logo" src="logo.jpg" alt="لوگوی دکتر فرشاد فتحی" width="78" height="110">
+    <div class="brand-text">
+      <p class="dr-name">دکتر فرشاد فتحی</p>
+      <p class="dr-cred">متخصص طب اورژانس<br>فلوشیپ انفورماتیک بالینی</p>
+    </div>
+    <button type="button" class="theme-btn" id="theme-btn" aria-label="تغییر حالت روشن و تیره">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="apptitle">
+    <h1>محاسبه‌گر دارویی بالینی</h1>
+    <p class="sub">برای پرستاران و پزشکان، بر بالین بیمار</p>
+  </div>
+  <p class="notice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+    <span>نتایج را پیش از اجرا با دستور پزشک و پروتکل بخش تطبیق دهید و داروهای پرخطر را با همکار دوم کنترل کنید.</span></p>
+
+  <div class="voicebar">
+    <span class="vb-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg> زبان گفتار</span>
+    <div class="seg sm" id="voice-lang" data-value="fa" data-default="fa" role="group" aria-label="زبان گفتار">
+      <button type="button" data-val="fa" aria-pressed="true">فارسی</button>
+      <button type="button" data-val="en" aria-pressed="false">English</button>
+    </div>
+  </div>
+  <p class="vb-help" id="vb-help">روی میکروفون کنار هر کادر بزنید و عدد را با واحدش بگویید؛ مثلاً «پانصد میلی گرم در پنج سی سی».</p>
+
+  <!-- ============ step 1: drug name ============ -->
+  <section class="card drugbox" aria-labelledby="drug-h">
+    <div class="card-head">
+      <div><h2 id="drug-h">ابتدا: نام دارو</h2><p class="desc">نام دارو را بنویسید یا بگویید تا محاسبه‌گر مناسب با غلظت رایج آماده شود. مقادیر بیمار را هم می‌توانید در همان جمله بگویید.</p></div>
+      <button type="button" class="reset" id="drug-clear">پاک کردن</button>
+    </div>
+    <label class="field"><span class="lbl">نام دارو یا فرمان کامل</span>
+      <span class="inrow"><input id="drug" class="txt" type="text" list="drug-list" dir="auto" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" placeholder="مثلاً نوراپی‌نفرین"><button type="button" class="go" id="drug-go">اجرا</button></span>
+    </label>
+    <datalist id="drug-list"></datalist>
+    <p class="hint">نمونه: «نوراپی نفرین چهار میلی گرم در پنجاه سی سی، وزن هفتاد، دوز صفر ممیز یک»</p>
+    <div class="drug-info" id="drug-info" hidden></div>
+    <details class="lib" id="lib">
+      <summary>فهرست داروها</summary>
+      <div id="lib-body"></div>
+    </details>
+  </section>
+
+  <nav class="tabs" role="tablist" aria-label="محاسبه‌گرها">
+    <button type="button" role="tab" id="t-dhv" aria-controls="tab-dhv" data-tab="dhv">حجم تجویز</button>
+    <button type="button" role="tab" id="t-wb" aria-controls="tab-wb" data-tab="wb">دوز وزنی</button>
+    <button type="button" role="tab" id="t-inf" aria-controls="tab-inf" data-tab="inf">انفوزیون پمپ</button>
+    <button type="button" role="tab" id="t-gtt" aria-controls="tab-gtt" data-tab="gtt">قطرات سرم</button>
+    <button type="button" role="tab" id="t-dil" aria-controls="tab-dil" data-tab="dil">رقیق‌سازی</button>
+    <button type="button" role="tab" id="t-renal" aria-controls="tab-renal" data-tab="renal">کلیرنس و BSA</button>
+    <button type="button" role="tab" id="t-maint" aria-controls="tab-maint" data-tab="maint">مایعات اطفال</button>
+  </nav>
+
+  <main>
+  <!-- ============ D/H x V ============ -->
+  <section class="calc" id="tab-dhv" role="tabpanel" aria-labelledby="t-dhv">
+    <div class="card" data-calc="dhv">
+      <div class="card-head">
+        <div><h2>حجم یا تعداد قرص</h2><p class="desc">دوز تجویزشده ÷ مقدار موجود × حجم (<bdi dir="ltr">D/H × V</bdi>)</p></div>
+        <button type="button" class="reset" data-reset>پاک کردن</button>
+      </div>
+      <div class="seg" id="dhv-form" data-value="liq" data-default="liq" role="group" aria-label="شکل دارو">
+        <button type="button" data-val="liq" aria-pressed="true">محلول / آمپول / ویال</button>
+        <button type="button" data-val="tab" aria-pressed="false">قرص / کپسول</button>
+      </div>
+      <label class="field"><span class="lbl">دوز دستورداده‌شده (D)</span>
+        <span class="inrow"><input id="dhv-dose" inputmode="decimal" dir="ltr" autocomplete="off">
+        <select id="dhv-dose-u" dir="ltr" aria-label="واحد دوز"><option value="mg" selected>mg</option><option value="mcg">mcg</option><option value="g">g</option><option value="units">units</option><option value="mEq">mEq</option></select></span>
+      </label>
+      <label class="field"><span class="lbl" id="dhv-have-lbl">مقدار دارو در آمپول / ویال موجود (H)</span>
+        <span class="inrow"><input id="dhv-have" inputmode="decimal" dir="ltr" autocomplete="off">
+        <select id="dhv-have-u" dir="ltr" aria-label="واحد دارو"><option value="mg" selected>mg</option><option value="mcg">mcg</option><option value="g">g</option><option value="units">units</option><option value="mEq">mEq</option></select></span>
+      </label>
+      <label class="field" id="dhv-vol-wrap"><span class="lbl">حجم همان آمپول / ویال (V)</span>
+        <span class="inrow"><input id="dhv-vol" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit">mL</span></span>
+        <span class="hint">مثال: آمپول <bdi dir="ltr">250 mg / 5 mL</bdi> ← در H عدد <bdi dir="ltr">250 mg</bdi> و در V عدد <bdi dir="ltr">5 mL</bdi></span>
+      </label>
+      <div class="result" data-out="dhv" aria-live="polite"></div>
+      <div class="msgs" data-msgs="dhv"></div>
+    </div>
+  </section>
+
+  <!-- ============ Weight-based ============ -->
+  <section class="calc" id="tab-wb" role="tabpanel" aria-labelledby="t-wb">
+    <div class="card" data-calc="wb">
+      <div class="card-head">
+        <div><h2>دوز بر اساس وزن</h2><p class="desc">دوز هر کیلوگرم، تقسیم در نوبت‌ها، سقف دوز و حجم برداشت</p></div>
+        <button type="button" class="reset" data-reset>پاک کردن</button>
+      </div>
+      <label class="field"><span class="lbl">وزن بیمار</span>
+        <span class="inrow"><input id="wb-w" inputmode="decimal" dir="ltr" autocomplete="off">
+        <select id="wb-wu" dir="ltr" aria-label="واحد وزن"><option value="kg" selected>kg</option><option value="lb">lb</option></select></span>
+      </label>
+      <label class="field"><span class="lbl">دوز دستورداده‌شده (به ازای هر کیلوگرم)</span>
+        <span class="inrow"><input id="wb-dose" inputmode="decimal" dir="ltr" autocomplete="off">
+        <select id="wb-du" dir="ltr" aria-label="واحد دوز"><option value="mg" selected>mg/kg</option><option value="mcg">mcg/kg</option><option value="g">g/kg</option><option value="units">units/kg</option><option value="mEq">mEq/kg</option></select></span>
+      </label>
+      <div class="seg" id="wb-basis" data-value="dose" data-default="dose" role="group" aria-label="مبنای دوز">
+        <button type="button" data-val="dose" aria-pressed="true">به ازای هر نوبت</button>
+        <button type="button" data-val="day" aria-pressed="false">در ۲۴ ساعت</button>
+      </div>
+      <div class="grid2 tight">
+        <label class="field"><span class="lbl" id="wb-n-lbl">تعداد نوبت در ۲۴ ساعت</span>
+          <span class="inrow"><input id="wb-n" inputmode="numeric" dir="ltr" autocomplete="off"><span class="unit">نوبت</span></span>
+        </label>
+        <label class="field"><span class="lbl">حداکثر تک‌دوز <span class="opt">(اختیاری)</span></span>
+          <span class="inrow"><input id="wb-max" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit wb-du-label">mg</span></span>
+        </label>
+      </div>
+      <p class="subhead">حجم برداشت از آمپول / ویال <span class="opt">(اختیاری)</span></p>
+      <div class="grid2">
+        <label class="field"><span class="lbl">مقدار دارو در آمپول / ویال</span>
+          <span class="inrow"><input id="wb-ca" inputmode="decimal" dir="ltr" autocomplete="off">
+          <select id="wb-cu" dir="ltr" aria-label="واحد دارو"><option value="mg" selected>mg</option><option value="mcg">mcg</option><option value="g">g</option><option value="units">units</option><option value="mEq">mEq</option></select></span>
+        </label>
+        <label class="field"><span class="lbl">حجم همان آمپول / ویال</span>
+          <span class="inrow"><input id="wb-cv" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit">mL</span></span>
+        </label>
+      </div>
+      <div class="result" data-out="wb" aria-live="polite"></div>
+      <div class="msgs" data-msgs="wb"></div>
+    </div>
+  </section>
+
+  <!-- ============ Infusion ============ -->
+  <section class="calc" id="tab-inf" role="tabpanel" aria-labelledby="t-inf">
+    <div class="card" data-calc="inf">
+      <div class="card-head">
+        <div><h2>انفوزیون مداوم با پمپ</h2><p class="desc">تبدیل دوز (مثل <bdi dir="ltr">mcg/kg/min</bdi>) به سرعت پمپ <bdi dir="ltr">mL/h</bdi> و برعکس</p></div>
+        <button type="button" class="reset" data-reset>پاک کردن</button>
+      </div>
+      <div class="seg" id="inf-mode" data-value="rate" data-default="rate" role="group" aria-label="نوع محاسبه">
+        <button type="button" data-val="rate" aria-pressed="true">محاسبه سرعت پمپ</button>
+        <button type="button" data-val="dose" aria-pressed="false">محاسبه دوز از سرعت</button>
+      </div>
+      <p class="subhead">محلول آماده‌شده در سرنگ یا کیسه</p>
+      <div class="grid2">
+        <label class="field"><span class="lbl">مقدار کل دارو در سرنگ / کیسه</span>
+          <span class="inrow"><input id="inf-amt" inputmode="decimal" dir="ltr" autocomplete="off">
+          <select id="inf-amtu" dir="ltr" aria-label="واحد دارو"><option value="mg" selected>mg</option><option value="mcg">mcg</option><option value="g">g</option><option value="units">units</option></select></span>
+        </label>
+        <label class="field"><span class="lbl">حجم کل سرنگ / کیسه (دارو + حلال)</span>
+          <span class="inrow"><input id="inf-vol" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit">mL</span></span>
+        </label>
+      </div>
+      <p class="hint">مثال: <bdi dir="ltr">4 mg</bdi> نوراپی‌نفرین که در سرنگ به <bdi dir="ltr">50 mL</bdi> رسانده شده ← مقدار <bdi dir="ltr">4 mg</bdi> و حجم <bdi dir="ltr">50 mL</bdi></p>
+      <p class="subhead">دوز و بیمار</p>
+      <label class="field"><span class="lbl">واحد دوز دستورداده‌شده</span>
+        <span class="inrow solo"><select id="inf-du" dir="ltr">
+          <option value="mcg/kg/min" selected>mcg/kg/min</option>
+          <option value="mcg/kg/h">mcg/kg/h</option>
+          <option value="mcg/min">mcg/min</option>
+          <option value="mcg/h">mcg/h</option>
+          <option value="mg/kg/h">mg/kg/h</option>
+          <option value="mg/h">mg/h</option>
+          <option value="mg/min">mg/min</option>
+          <option value="units/kg/h">units/kg/h</option>
+          <option value="units/h">units/h</option>
+          <option value="units/min">units/min</option>
+          <option value="mUnits/min">milliunits/min</option>
+        </select></span>
+      </label>
+      <label class="field"><span class="lbl">وزن بیمار <span class="opt" id="inf-w-opt"></span></span>
+        <span class="inrow"><input id="inf-w" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit">kg</span></span>
+      </label>
+      <label class="field" id="inf-dose-wrap"><span class="lbl">دوز دستورداده‌شده</span>
+        <span class="inrow"><input id="inf-dose" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit inf-du-label">mcg/kg/min</span></span>
+      </label>
+      <label class="field" id="inf-rate-wrap" hidden><span class="lbl">سرعت فعلی پمپ (از روی پمپ)</span>
+        <span class="inrow"><input id="inf-rate" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit">mL/h</span></span>
+      </label>
+      <div class="result" data-out="inf" aria-live="polite"></div>
+      <div class="msgs" data-msgs="inf"></div>
+    </div>
+  </section>
+
+  <!-- ============ Drip rate ============ -->
+  <section class="calc" id="tab-gtt" role="tabpanel" aria-labelledby="t-gtt">
+    <div class="card" data-calc="gtt">
+      <div class="card-head">
+        <div><h2>سرعت قطرات ست سرم</h2><p class="desc">تنظیم دستی سرم با ست ماکرو یا میکرو</p></div>
+        <button type="button" class="reset" data-reset>پاک کردن</button>
+      </div>
+      <label class="field"><span class="lbl">حجم سرم</span>
+        <span class="inrow"><input id="gtt-vol" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit">mL</span></span>
+      </label>
+      <div class="grid2 tight">
+        <label class="field"><span class="lbl">مدت: ساعت</span>
+          <span class="inrow"><input id="gtt-h" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit">h</span></span>
+        </label>
+        <label class="field"><span class="lbl">و دقیقه</span>
+          <span class="inrow"><input id="gtt-m" inputmode="numeric" dir="ltr" autocomplete="off"><span class="unit">min</span></span>
+        </label>
+      </div>
+      <label class="field"><span class="lbl">ضریب قطره ست (drop factor)</span>
+        <span class="inrow solo"><select id="gtt-df" dir="ltr">
+          <option value="10">10 gtt/mL (macro)</option>
+          <option value="15">15 gtt/mL (macro)</option>
+          <option value="20" selected>20 gtt/mL (macro)</option>
+          <option value="60">60 gtt/mL (micro)</option>
+        </select></span>
+      </label>
+      <p class="hint">ضریب قطره روی بسته‌بندی ست سرم نوشته شده است.</p>
+      <div class="result" data-out="gtt" aria-live="polite"></div>
+      <div class="msgs" data-msgs="gtt"></div>
+    </div>
+  </section>
+
+  <!-- ============ Dilution ============ -->
+  <section class="calc" id="tab-dil" role="tabpanel" aria-labelledby="t-dil">
+    <div class="card" data-calc="dilA">
+      <div class="card-head">
+        <div><h2>غلظت پس از حل کردن</h2><p class="desc">مقدار دارو ÷ حجم نهایی محلول</p></div>
+        <button type="button" class="reset" data-reset>پاک کردن</button>
+      </div>
+      <div class="grid2">
+        <label class="field"><span class="lbl">مقدار داروی داخل ویال</span>
+          <span class="inrow"><input id="dil-a-amt" inputmode="decimal" dir="ltr" autocomplete="off">
+          <select id="dil-a-u" dir="ltr" aria-label="واحد دارو"><option value="mg" selected>mg</option><option value="g">g</option><option value="mcg">mcg</option><option value="units">units</option></select></span>
+        </label>
+        <label class="field"><span class="lbl">حجم نهایی پس از حل کردن</span>
+          <span class="inrow"><input id="dil-a-vol" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit">mL</span></span>
+        </label>
+      </div>
+      <p class="hint">حجم نهایی گاهی به‌خاطر حجم پودر از حجم حلال بیشتر است؛ بروشور دارو را ببینید.</p>
+      <div class="result" data-out="dilA" aria-live="polite"></div>
+      <div class="msgs" data-msgs="dilA"></div>
+    </div>
+
+    <div class="card" data-calc="dilB">
+      <div class="card-head">
+        <div><h2>تبدیل درصد و نسبت</h2><p class="desc">مثل لیدوکائین ۲٪ یا اپی‌نفرین <bdi dir="ltr">1:1000</bdi></p></div>
+        <button type="button" class="reset" data-reset>پاک کردن</button>
+      </div>
+      <div class="grid2 tight">
+        <label class="field"><span class="lbl">درصد (w/v)</span>
+          <span class="inrow"><input id="dil-pct" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit">%</span></span>
+        </label>
+        <label class="field"><span class="lbl">نسبت</span>
+          <span class="inrow"><input id="dil-ratio" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit" dir="ltr">1 :</span></span>
+        </label>
+      </div>
+      <div class="result" data-out="dilB" aria-live="polite"></div>
+      <div class="msgs" data-msgs="dilB"></div>
+    </div>
+
+    <div class="card" data-calc="dilC">
+      <div class="card-head">
+        <div><h2>رقیق‌سازی محلول</h2><p class="desc"><bdi dir="ltr">C1 × V1 = C2 × V2</bdi></p></div>
+        <button type="button" class="reset" data-reset>پاک کردن</button>
+      </div>
+      <label class="field"><span class="lbl">غلظت محلول موجود (C1)</span>
+        <span class="inrow"><input id="dil-c1" inputmode="decimal" dir="ltr" autocomplete="off">
+        <select id="dil-cu" dir="ltr" aria-label="واحد غلظت"><option value="mg/mL" selected>mg/mL</option><option value="mcg/mL">mcg/mL</option><option value="units/mL">units/mL</option><option value="%">%</option></select></span>
+      </label>
+      <div class="grid2">
+        <label class="field"><span class="lbl">غلظت مطلوب (C2)</span>
+          <span class="inrow"><input id="dil-c2" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit dil-cu-label">mg/mL</span></span>
+        </label>
+        <label class="field"><span class="lbl">حجم نهایی (V2)</span>
+          <span class="inrow"><input id="dil-v2" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit">mL</span></span>
+        </label>
+      </div>
+      <div class="result" data-out="dilC" aria-live="polite"></div>
+      <div class="msgs" data-msgs="dilC"></div>
+    </div>
+  </section>
+
+  <!-- ============ Renal / BSA ============ -->
+  <section class="calc" id="tab-renal" role="tabpanel" aria-labelledby="t-renal">
+    <div class="card" data-calc="renal">
+      <div class="card-head">
+        <div><h2>کلیرنس کراتینین، BSA و وزن ایده‌آل</h2><p class="desc">Cockcroft–Gault، Mosteller و Devine</p></div>
+        <button type="button" class="reset" data-reset>پاک کردن</button>
+      </div>
+      <div class="seg" id="r-sex" data-value="m" data-default="m" role="group" aria-label="جنس">
+        <button type="button" data-val="m" aria-pressed="true">مرد</button>
+        <button type="button" data-val="f" aria-pressed="false">زن</button>
+      </div>
+      <div class="grid2 tight">
+        <label class="field"><span class="lbl">سن</span>
+          <span class="inrow"><input id="r-age" inputmode="numeric" dir="ltr" autocomplete="off"><span class="unit">سال</span></span>
+        </label>
+        <label class="field"><span class="lbl">قد</span>
+          <span class="inrow"><input id="r-h" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit">cm</span></span>
+        </label>
+      </div>
+      <div class="grid2">
+        <label class="field"><span class="lbl">وزن</span>
+          <span class="inrow"><input id="r-w" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit">kg</span></span>
+        </label>
+        <label class="field"><span class="lbl">کراتینین سرم</span>
+          <span class="inrow"><input id="r-scr" inputmode="decimal" dir="ltr" autocomplete="off">
+          <select id="r-scru" dir="ltr" aria-label="واحد کراتینین"><option value="mgdl" selected>mg/dL</option><option value="umol">µmol/L</option></select></span>
+        </label>
+      </div>
+      <label class="field"><span class="lbl">وزن مورد استفاده در فرمول کلیرنس</span>
+        <span class="inrow solo"><select id="r-wt">
+          <option value="actual" selected>وزن واقعی (TBW)</option>
+          <option value="ibw">وزن ایده‌آل (IBW)</option>
+          <option value="adj">وزن تعدیل‌شده (AdjBW)</option>
+        </select></span>
+      </label>
+      <p class="subhead">دوز بر اساس سطح بدن <span class="opt">(اختیاری)</span></p>
+      <label class="field"><span class="lbl">دوز به ازای هر متر مربع</span>
+        <span class="inrow"><input id="r-dm" inputmode="decimal" dir="ltr" autocomplete="off">
+        <select id="r-dmu" dir="ltr" aria-label="واحد دوز"><option value="mg" selected>mg/m²</option><option value="mcg">mcg/m²</option><option value="g">g/m²</option><option value="units">units/m²</option></select></span>
+      </label>
+      <div class="result" data-out="renal" aria-live="polite"></div>
+      <div class="msgs" data-msgs="renal"></div>
+    </div>
+  </section>
+
+  <!-- ============ Maintenance fluids ============ -->
+  <section class="calc" id="tab-maint" role="tabpanel" aria-labelledby="t-maint">
+    <div class="card" data-calc="maint">
+      <div class="card-head">
+        <div><h2>مایعات نگهدارنده اطفال</h2><p class="desc">روش Holliday–Segar (قانون <bdi dir="ltr">4-2-1</bdi>)</p></div>
+        <button type="button" class="reset" data-reset>پاک کردن</button>
+      </div>
+      <label class="field"><span class="lbl">وزن کودک</span>
+        <span class="inrow"><input id="m-w" inputmode="decimal" dir="ltr" autocomplete="off"><span class="unit">kg</span></span>
+      </label>
+      <div class="result" data-out="maint" aria-live="polite"></div>
+      <div class="msgs" data-msgs="maint"></div>
+      <p class="note">این فرمول برای نوزادان کاربرد ندارد و کمبود مایع یا دفع مداوم را پوشش نمی‌دهد. شرایط خاص (نارسایی قلب یا کلیه، SIADH) را جداگانه و طبق پروتکل در نظر بگیرید.</p>
+    </div>
+  </section>
+  </main>
+
+  <section class="foot" aria-labelledby="safety-h">
+    <h2 id="safety-h">نکات ایمنی</h2>
+    <ul>
+      <li>این ابزار جایگزین قضاوت بالینی، دستور پزشک، بروشور دارو و پروتکل مرکز درمانی نیست.</li>
+      <li>برای داروهای پرخطر (انسولین، هپارین، پتاسیم، وازوپرسورها، مخدرها، شل‌کننده‌ها و داروهای اطفال) کنترل مستقل با همکار دوم انجام دهید.</li>
+      <li>پس از ورود صوتی، عدد ثبت‌شده را با آنچه گفته‌اید مقایسه کنید.</li>
+      <li>غلظت‌های پیش‌فرض رایج‌ترین شکل دارو هستند؛ همیشه با برچسب ویال و پروتکل بخش تطبیق دهید.</li>
+      <li>هیچ مقداری از بیمار ذخیره یا ارسال نمی‌شود و همه محاسبات روی همین دستگاه انجام می‌شود.</li>
+    </ul>
+  </section>
+  <p class="credit">دکتر فرشاد فتحی · متخصص طب اورژانس · فلوشیپ انفورماتیک بالینی</p>
+</div>
+
+<div class="vtoast-wrap" aria-live="polite">
+  <div class="vtoast" id="vtoast" hidden>
+    <span class="vt-ic" id="vt-ic" aria-hidden="true"></span>
+    <div class="vt-body"><div class="vt-title" id="vt-title"></div><div class="vt-text" id="vt-text" dir="auto"></div></div>
+    <div class="vt-btns">
+      <button type="button" class="vt-btn" id="vt-act" hidden></button>
+      <button type="button" class="vt-btn" id="vt-stop">توقف</button>
+      <button type="button" class="vt-btn" id="vt-close" aria-label="بستن">✕</button>
+    </div>
+  </div>
+</div>
+
+<div class="vsheet-wrap" id="vsheet" hidden>
+  <div class="vsheet" role="dialog" aria-modal="true" aria-labelledby="vs-title">
+    <div class="vs-head"><strong id="vs-title">ورود با میکروفون کیبورد</strong><button type="button" class="reset" id="vs-close" aria-label="بستن">✕</button></div>
+    <p class="vs-hint">روی میکروفون کیبورد گوشی بزنید، عدد و واحد را بگویید و بعد «ثبت» را بزنید.</p>
+    <span class="inrow nomic"><input id="vs-input" class="txt" type="text" dir="auto" autocomplete="off" enterkeyhint="done" aria-label="متن دیکته‌شده"><button type="button" class="go" id="vs-go">ثبت</button></span>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   کتابخانه داروها — برای ویرایش یا افزودن دارو فقط همین بخش را تغییر دهید.
+   -------------------------------------------------------------------
+   fa   : نام فارسی          en : نام انگلیسی
+   c    : دسته (vaso | anti | sed | resus | lyte)
+   k    : نام‌های دیگری که تشخیص داده شوند، جدا شده با «|»
+   m    : حالت‌های محاسبه؛ اولی پیش‌فرض است
+          t  = 'inf' انفوزیون (a مقدار دارو در v میلی‌لیتر حجم کل)
+               'wb'  دوز وزنی  (a مقدار دارو در v میلی‌لیتر آمپول)
+               'dhv' حجم تزریق (a مقدار دارو در v میلی‌لیتر آمپول)
+          u  = واحد مقدار دارو: mg | mcg | g | units | mEq
+          du = واحد دوز؛ در inf مثل 'mcg/kg/min'، در wb واحد به ازای کیلوگرم، در dhv واحد دوز
+   high : true یعنی داروی پرخطر (برچسب قرمز و هشدار کنترل دوم)
+   note : یادداشت کوتاه
+   ===================================================================== */
+var DRUG_GROUPS = {vaso:'وازوپرسورها و اینوتروپ‌ها', anti:'ضدانعقاد، انسولین و اکسی‌توسین', sed:'آرام‌بخش، ضددرد و داروهای RSI', resus:'ضدتشنج، احیا و داروهای تک‌دوز', lyte:'الکترولیت‌ها'};
+var DRUGS = [
+  {c:'vaso', fa:'نوراپی‌نفرین', en:'Norepinephrine', k:'نوراپی نفرین|نوراپینفرین|نور اپی نفرین|نوراپی|نورادرنالین|نورآدرنالین|لووفد|levophed|noradrenaline|norepi', m:[{t:'inf',a:4,u:'mg',v:50,du:'mcg/kg/min'}], high:true},
+  {c:'vaso', fa:'اپی‌نفرین (آدرنالین)', en:'Epinephrine', k:'اپی نفرین|اپینفرین|آدرنالین|ادرنالین|adrenaline', m:[{t:'inf',a:4,u:'mg',v:50,du:'mcg/kg/min'},{t:'dhv',a:1,u:'mg',v:1,du:'mg'}], high:true, note:'آمپول 1 mg/mL (1:1000).'},
+  {c:'vaso', fa:'دوپامین', en:'Dopamine', k:'دوپامین|dopamine', m:[{t:'inf',a:200,u:'mg',v:50,du:'mcg/kg/min'}], note:'آمپول 200 mg/5 mL.'},
+  {c:'vaso', fa:'دوبوتامین', en:'Dobutamine', k:'دوبوتامین|دبوتامین', m:[{t:'inf',a:250,u:'mg',v:50,du:'mcg/kg/min'}], note:'ویال 250 mg.'},
+  {c:'vaso', fa:'نیتروگلیسرین (TNG)', en:'Nitroglycerin', k:'نیتروگلیسرین|نیتروگلیسیرین|تی ان جی|tng|ntg|nitroglycerine', m:[{t:'inf',a:50,u:'mg',v:50,du:'mcg/min'}]},
+  {c:'vaso', fa:'وازوپرسین', en:'Vasopressin', k:'وازوپرسین|وازوپرسن', m:[{t:'inf',a:20,u:'units',v:100,du:'units/min'}], note:'آمپول 20 units/mL.'},
+  {c:'vaso', fa:'آمیودارون', en:'Amiodarone', k:'آمیودارون|امیودارون|کوردارون|cordarone', m:[{t:'inf',a:900,u:'mg',v:500,du:'mg/min'},{t:'dhv',a:150,u:'mg',v:3,du:'mg'}], note:'آمپول 150 mg/3 mL.'},
+
+  {c:'anti', fa:'هپارین', en:'Heparin', k:'هپارین', m:[{t:'inf',a:25000,u:'units',v:50,du:'units/kg/h'},{t:'dhv',a:5000,u:'units',v:1,du:'units'}], high:true, note:'ویال 5000 units/mL.'},
+  {c:'anti', fa:'انسولین رگولار', en:'Regular insulin', k:'انسولین|رگولار|insulin', m:[{t:'inf',a:50,u:'units',v:50,du:'units/kg/h'}], high:true, note:'کنترل دوم الزامی است.'},
+  {c:'anti', fa:'اکسی‌توسین', en:'Oxytocin', k:'اکسی توسین|اکسیتوسین|سینتوسینون|syntocinon|pitocin', m:[{t:'inf',a:10,u:'units',v:500,du:'mUnits/min'}], high:true, note:'آمپول 10 units/mL.'},
+  {c:'anti', fa:'انوکساپارین', en:'Enoxaparin', k:'انوکساپارین|کلگزان|clexane', m:[{t:'wb',a:100,u:'mg',v:1,du:'mg'}], high:true, note:'100 mg/mL.'},
+
+  {c:'sed', fa:'دکسمدتومیدین', en:'Dexmedetomidine', k:'دکسمدتومیدین|دکس مدتومیدین|پرسدکس|precedex', m:[{t:'inf',a:200,u:'mcg',v:50,du:'mcg/kg/h'}], note:'آمپول 200 mcg/2 mL.'},
+  {c:'sed', fa:'میدازولام', en:'Midazolam', k:'میدازولام|میدازولم|دورمیکوم|dormicum', m:[{t:'wb',a:5,u:'mg',v:1,du:'mg'},{t:'inf',a:50,u:'mg',v:50,du:'mg/kg/h'}], note:'آمپول 5 mg/mL.'},
+  {c:'sed', fa:'فنتانیل', en:'Fentanyl', k:'فنتانیل', m:[{t:'wb',a:50,u:'mcg',v:1,du:'mcg'},{t:'inf',a:500,u:'mcg',v:50,du:'mcg/kg/h'}], high:true, note:'آمپول 50 mcg/mL.'},
+  {c:'sed', fa:'مورفین', en:'Morphine', k:'مورفین', m:[{t:'wb',a:10,u:'mg',v:1,du:'mg'}], high:true, note:'آمپول 10 mg/mL.'},
+  {c:'sed', fa:'کتامین', en:'Ketamine', k:'کتامین|کتامن', m:[{t:'wb',a:50,u:'mg',v:1,du:'mg'},{t:'inf',a:500,u:'mg',v:50,du:'mg/kg/h'}], note:'ویال 500 mg/10 mL (50 mg/mL).'},
+  {c:'sed', fa:'پروپوفول', en:'Propofol', k:'پروپوفول|پروپفول', m:[{t:'wb',a:10,u:'mg',v:1,du:'mg'},{t:'inf',a:500,u:'mg',v:50,du:'mg/kg/h'}], note:'پروپوفول 1% = 10 mg/mL.'},
+  {c:'sed', fa:'اتومیدیت', en:'Etomidate', k:'اتومیدیت|اتومیدات', m:[{t:'wb',a:2,u:'mg',v:1,du:'mg'}], note:'2 mg/mL.'},
+  {c:'sed', fa:'روکورونیوم', en:'Rocuronium', k:'روکورونیوم|رکورونیوم', m:[{t:'wb',a:10,u:'mg',v:1,du:'mg'}], high:true, note:'10 mg/mL. شل‌کننده عضلانی.'},
+  {c:'sed', fa:'آتراکوریوم', en:'Atracurium', k:'آتراکوریوم|اتراکوریوم', m:[{t:'wb',a:10,u:'mg',v:1,du:'mg'}], high:true, note:'10 mg/mL. شل‌کننده عضلانی.'},
+  {c:'sed', fa:'لیدوکائین ۲٪', en:'Lidocaine 2%', k:'لیدوکائین|لیدوکایین|زایلوکائین|xylocaine', m:[{t:'wb',a:20,u:'mg',v:1,du:'mg'}], note:'2% = 20 mg/mL.'},
+  {c:'sed', fa:'پاراستامول وریدی', en:'Paracetamol IV', k:'پاراستامول|استامینوفن|acetaminophen', m:[{t:'wb',a:1000,u:'mg',v:100,du:'mg'}], note:'10 mg/mL.'},
+
+  {c:'resus', fa:'فنی‌توئین', en:'Phenytoin', k:'فنی توئین|فنیتوئین|فنی تویین|فنیتویین', m:[{t:'wb',a:50,u:'mg',v:1,du:'mg'}], note:'50 mg/mL.'},
+  {c:'resus', fa:'لوتیراستام', en:'Levetiracetam', k:'لوتیراستام|لوتیراستم|کپرا|keppra', m:[{t:'wb',a:500,u:'mg',v:5,du:'mg'}], note:'500 mg/5 mL.'},
+  {c:'resus', fa:'آتروپین', en:'Atropine', k:'آتروپین|اتروپین', m:[{t:'dhv',a:0.5,u:'mg',v:1,du:'mg'}], note:'آمپول 0.5 mg/mL.'},
+  {c:'resus', fa:'آدنوزین', en:'Adenosine', k:'آدنوزین|ادنوزین', m:[{t:'dhv',a:6,u:'mg',v:2,du:'mg'}], note:'6 mg/2 mL.'},
+  {c:'resus', fa:'نالوکسان', en:'Naloxone', k:'نالوکسان|نالوکسون|narcan', m:[{t:'dhv',a:0.4,u:'mg',v:1,du:'mg'}], note:'0.4 mg/mL.'},
+  {c:'resus', fa:'دیازپام', en:'Diazepam', k:'دیازپام|valium', m:[{t:'dhv',a:10,u:'mg',v:2,du:'mg'}], note:'10 mg/2 mL.'},
+  {c:'resus', fa:'هالوپریدول', en:'Haloperidol', k:'هالوپریدول|haldol', m:[{t:'dhv',a:5,u:'mg',v:1,du:'mg'}], note:'5 mg/mL.'},
+  {c:'resus', fa:'فوروزماید (لازیکس)', en:'Furosemide', k:'فوروزماید|فوروسماید|لازیکس|lasix', m:[{t:'dhv',a:20,u:'mg',v:2,du:'mg'}], note:'20 mg/2 mL.'},
+  {c:'resus', fa:'دگزامتازون', en:'Dexamethasone', k:'دگزامتازون|دکسامتازون', m:[{t:'dhv',a:8,u:'mg',v:2,du:'mg'}], note:'8 mg/2 mL.'},
+  {c:'resus', fa:'اندانسترون', en:'Ondansetron', k:'اندانسترون|اوندانسترون|zofran', m:[{t:'dhv',a:4,u:'mg',v:2,du:'mg'}], note:'4 mg/2 mL.'},
+  {c:'resus', fa:'متوکلوپرامید', en:'Metoclopramide', k:'متوکلوپرامید|پلازیل|plasil', m:[{t:'dhv',a:10,u:'mg',v:2,du:'mg'}], note:'10 mg/2 mL.'},
+  {c:'resus', fa:'ترانگزامیک اسید', en:'Tranexamic acid', k:'ترانگزامیک اسید|ترانگزامیک|ترانزامین|tranexamic|txa', m:[{t:'dhv',a:500,u:'mg',v:5,du:'mg'}], note:'آمپول‌ها 250 یا 500 mg/5 mL هستند؛ برچسب را کنترل کنید.'},
+  {c:'resus', fa:'دیگوکسین', en:'Digoxin', k:'دیگوکسین', m:[{t:'dhv',a:0.5,u:'mg',v:2,du:'mg'}], high:true, note:'0.5 mg/2 mL.'},
+
+  {c:'lyte', fa:'منیزیم سولفات ۵۰٪', en:'Magnesium sulfate 50%', k:'منیزیم سولفات|سولفات منیزیم|منیزیم|magnesium', m:[{t:'dhv',a:500,u:'mg',v:1,du:'g'}], note:'50% = 500 mg/mL. اگر ویال ۲۰٪ است، غلظت را 200 mg/mL کنید.'},
+  {c:'lyte', fa:'کلسیم گلوکونات ۱۰٪', en:'Calcium gluconate 10%', k:'کلسیم گلوکونات|گلوکونات کلسیم', m:[{t:'dhv',a:100,u:'mg',v:1,du:'g'}], note:'10% = 100 mg/mL. با کلسیم کلراید اشتباه نشود.'},
+  {c:'lyte', fa:'پتاسیم کلراید ۱۵٪', en:'Potassium chloride 15%', k:'پتاسیم کلراید|کلرید پتاسیم|پتاسیم|kcl', m:[{t:'dhv',a:2,u:'mEq',v:1,du:'mEq'}], high:true, note:'15% = 2 mEq/mL. فقط رقیق‌شده و آهسته — هرگز بولوس.'}
+];
+</script>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var has = function(o, k){ return Object.prototype.hasOwnProperty.call(o, k); };
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  /* =================================================================
+     1. ENGINE — pure, deterministic functions (no DOM)
+     ================================================================= */
+  var FA = '۰۱۲۳۴۵۶۷۸۹', AR = '٠١٢٣٤٥٦٧٨٩';
+  function latinDigits(s){
+    return String(s).replace(/[۰-۹]/g, function(d){ return FA.indexOf(d); }).replace(/[٠-٩]/g, function(d){ return AR.indexOf(d); });
+  }
+  // Typed number: Persian/Arabic/Latin digits; «٫» or «,» as the decimal mark.
+  // «25,000» is ambiguous (decimal comma or thousands?) and is refused rather than guessed.
+  function parseTyped(raw){
+    var s = latinDigits(raw).replace(/\s+/g, '');
+    if(s === '') return {empty:true, value:NaN};
+    if(/^[1-9]\d{0,2}(,\d{3})+$/.test(s)) return {value:NaN, ambiguous:true};
+    s = s.replace(/[٫,]/g, '.');
+    if(!/^(\d+\.?\d*|\.\d+)$/.test(s)) return {value:NaN, invalid:true};
+    return {value:parseFloat(s)};
+  }
+
+  // Unit families: an amount converts only within its own family.
+  var U = { g:{k:'mass',f:1e6}, mg:{k:'mass',f:1e3}, mcg:{k:'mass',f:1},
+            units:{k:'unit',f:1}, mUnits:{k:'unit',f:1e-3}, mEq:{k:'meq',f:1} };
+  function conv(v, from, to){
+    var a = U[from], b = U[to];
+    if(!a || !b || a.k !== b.k) return NaN;
+    return v * a.f / b.f;
+  }
+  function uName(u){ return u === 'mUnits' ? 'milliunits' : u; }
+
+  function fmt(x){
+    if(typeof x !== 'number' || !isFinite(x)) return '—';
+    var a = Math.abs(x);
+    if(a === 0) return '0';
+    if(a < 0.01) return String(Number(x.toPrecision(3)));
+    var d = a >= 100 ? 1 : (a >= 1 ? 2 : 3);
+    return x.toLocaleString('en-US', {maximumFractionDigits:d});
+  }
+  function dur(h){
+    if(!isFinite(h) || h <= 0) return '—';
+    if(h >= 48) return fmt(h/24) + ' روز';
+    var m = Math.round(h*60), hh = Math.floor(m/60), mm = m % 60;
+    if(!hh) return mm + ' دقیقه';
+    return hh + ' ساعت' + (mm ? ' و ' + mm + ' دقیقه' : '');
+  }
+  function R(label, unit){ return {main:{label:label, unit:unit, value:NaN}, rows:[], formula:[], warns:[], errs:[], infos:[]}; }
+  var WEIGHT_WARN = 'وزن واردشده غیرمعمول است؛ مقدار و واحد وزن را بررسی کنید.';
+  function missing(){ for(var i = 0; i < arguments.length; i++) if(isNaN(arguments[i])) return true; return false; }
+
+  /* ---- 6.1 D/H × V ---- */
+  function calcDHV(x){
+    var tab = x.form === 'tab';
+    var r = R(tab ? 'تعداد قرص در هر نوبت' : 'حجم لازم برای کشیدن', tab ? 'tab' : 'mL');
+    var V = tab ? 1 : x.V;
+    if(missing(x.D, x.H, V)) return r;
+    if(x.D <= 0 || x.H <= 0 || V <= 0){ r.errs.push('مقادیر باید بزرگ‌تر از صفر باشند.'); return r; }
+    var Dc = conv(x.D, x.Du, x.Hu);
+    if(isNaN(Dc)){ r.errs.push('واحد دوز (' + x.Du + ') با واحد داروی موجود (' + x.Hu + ') از یک خانواده نیست و قابل تبدیل نیست.'); return r; }
+    if(x.Du !== x.Hu) r.formula.push(fmt(x.D)+' '+x.Du+' = '+fmt(Dc)+' '+x.Hu);
+    if(tab){
+      var n = Dc / x.H; r.main.value = n;
+      r.formula.push(fmt(Dc)+' '+x.Hu+' ÷ '+fmt(x.H)+' '+x.Hu+' = '+fmt(n)+' tab');
+      if(Math.abs(n*2 - Math.round(n*2)) > 0.02) r.warns.push('عدد به‌دست‌آمده مضرب نیم قرص نیست؛ دستور و قدرت قرص را دوباره بررسی کنید.');
+      if(n > 4) r.warns.push('بیش از ۴ قرص در یک نوبت؛ دستور و قدرت دارو را دوباره کنترل کنید.');
+    } else {
+      var v = Dc / x.H * V; r.main.value = v;
+      r.formula.push('('+fmt(Dc)+' '+x.Hu+' ÷ '+fmt(x.H)+' '+x.Hu+') × '+fmt(V)+' mL = '+fmt(v)+' mL');
+      if(v < 0.1) r.warns.push('حجم کمتر از 0.1 mL است و دقیق کشیده نمی‌شود؛ رقیق‌سازی دارو را در نظر بگیرید.');
+    }
+    return r;
+  }
+
+  /* ---- 6.2 weight-based ---- */
+  function calcWB(x){
+    var du = x.du, r = R('دوز هر نوبت', du);
+    if(missing(x.w, x.d)) return r;
+    if(x.w <= 0 || x.d <= 0){ r.errs.push('وزن و دوز باید بزرگ‌تر از صفر باشند.'); return r; }
+    var kg = x.wu === 'lb' ? x.w * 0.45359237 : x.w;
+    if(x.wu === 'lb'){ r.rows.push({label:'وزن به کیلوگرم', value:kg, unit:'kg'}); r.formula.push(fmt(x.w)+' lb × 0.4536 = '+fmt(kg)+' kg'); }
+    if(kg < 0.3 || kg > 250) r.warns.push(WEIGHT_WARN);
+    var nOk = !isNaN(x.n) && x.n > 0, per = NaN, daily;
+    if(x.basis === 'dose'){
+      per = x.d * kg;
+      r.formula.push(fmt(x.d)+' '+du+'/kg × '+fmt(kg)+' kg = '+fmt(per)+' '+du);
+    } else {
+      daily = x.d * kg;
+      r.formula.push(fmt(x.d)+' '+du+'/kg/day × '+fmt(kg)+' kg = '+fmt(daily)+' '+du+'/day');
+      if(nOk){ per = daily / x.n; r.formula.push(fmt(daily)+' ÷ '+fmt(x.n)+' = '+fmt(per)+' '+du+'/dose'); }
+      else { r.main = {label:'دوز ۲۴ ساعته', value:daily, unit:du+'/day'}; r.infos.push('برای محاسبه دوز هر نوبت، تعداد نوبت‌ها را وارد کنید.'); }
+    }
+    var use = per;
+    if(!isNaN(per)){
+      r.main.value = per;
+      if(!isNaN(x.mx) && x.mx > 0 && per > x.mx){
+        use = x.mx;
+        r.warns.push('دوز محاسبه‌شده ('+fmt(per)+' '+du+') از حداکثر تک‌دوز ('+fmt(x.mx)+' '+du+') بیشتر است؛ حجم با همان حداکثر دوز حساب شد. با پزشک هماهنگ کنید.');
+        r.rows.push({label:'دوز با اعمال سقف', value:x.mx, unit:du, hl:true});
+      }
+      if(nOk) r.rows.push({label: use !== per ? 'مجموع ۲۴ ساعت (با سقف)' : 'مجموع ۲۴ ساعت', value:use*x.n, unit:du+'/day'});
+    }
+    if(!isNaN(x.ca) && !isNaN(x.cv) && !isNaN(use)){
+      if(x.ca <= 0 || x.cv <= 0) r.errs.push('مقدار و حجم داروی موجود باید بزرگ‌تر از صفر باشند.');
+      else {
+        var dc = conv(use, du, x.cu);
+        if(isNaN(dc)) r.errs.push('واحد دوز ('+du+') با واحد داروی موجود ('+x.cu+') قابل تبدیل نیست.');
+        else {
+          var v = dc / x.ca * x.cv;
+          r.rows.push({label:'حجم برداشت هر نوبت', value:v, unit:'mL', hl:true});
+          r.formula.push('('+fmt(dc)+' '+x.cu+' ÷ '+fmt(x.ca)+' '+x.cu+') × '+fmt(x.cv)+' mL = '+fmt(v)+' mL');
+          if(v < 0.1) r.warns.push('حجم کمتر از 0.1 mL است؛ رقیق‌سازی را در نظر بگیرید.');
+        }
+      }
+    }
+    return r;
+  }
+
+  /* ---- 6.3 continuous infusion ---- */
+  function infUnit(du){
+    var p = du.split('/');
+    return {amount:p[0], perKg:p.indexOf('kg') > -1, tf:p[p.length-1] === 'min' ? 60 : 1, label:du.replace('mUnits','milliunits'), aLabel:uName(p[0])};
+  }
+  function calcINF(x){
+    var toRate = x.mode !== 'dose', iu = infUnit(x.du);
+    var r = toRate ? R('سرعت پمپ', 'mL/h') : R('دوز دریافتی بیمار', iu.label);
+    if(missing(x.A, x.V)) return r;
+    if(x.A <= 0 || x.V <= 0){ r.errs.push('مقدار دارو و حجم محلول باید بزرگ‌تر از صفر باشند.'); return r; }
+    var c = conv(x.A, x.Au, iu.amount) / x.V;
+    if(isNaN(c)){ r.errs.push('واحد دارو در محلول ('+x.Au+') با واحد دوز ('+iu.label+') قابل تبدیل نیست.'); return r; }
+    r.rows.push({label:'غلظت محلول', value:c, unit:iu.aLabel+'/mL'});
+    if(x.Au !== iu.amount) r.rows.push({label:'غلظت به واحد دارو', value:x.A/x.V, unit:x.Au+'/mL'});
+    r.formula.push(fmt(x.A)+' '+x.Au+' ÷ '+fmt(x.V)+' mL = '+fmt(c)+' '+iu.aLabel+'/mL');
+    if(iu.perKg){
+      if(isNaN(x.w)){ r.infos.push('این واحد دوز وابسته به وزن است؛ وزن بیمار را وارد کنید.'); return r; }
+      if(x.w <= 0){ r.errs.push('وزن باید بزرگ‌تر از صفر باشد.'); return r; }
+      if(x.w < 0.3 || x.w > 250) r.warns.push(WEIGHT_WARN);
+    }
+    var W = iu.perKg ? x.w : 1, mlh, perH, dose;
+    if(toRate){
+      if(isNaN(x.dose)) return r;
+      if(x.dose <= 0){ r.errs.push('دوز باید بزرگ‌تر از صفر باشد.'); return r; }
+      dose = x.dose; perH = dose * W * iu.tf; mlh = perH / c; r.main.value = mlh;
+      r.formula.push(fmt(dose)+' '+iu.label+(iu.perKg ? ' × '+fmt(x.w)+' kg' : '')+(iu.tf === 60 ? ' × 60 min' : '')+' = '+fmt(perH)+' '+iu.aLabel+'/h');
+      r.formula.push(fmt(perH)+' '+iu.aLabel+'/h ÷ '+fmt(c)+' '+iu.aLabel+'/mL = '+fmt(mlh)+' mL/h');
+      var back = mlh * c / W / iu.tf;
+      r.formula.push('check: '+fmt(mlh)+' mL/h → '+fmt(back)+' '+iu.label);
+    } else {
+      if(isNaN(x.rate)) return r;
+      if(x.rate <= 0){ r.errs.push('سرعت باید بزرگ‌تر از صفر باشد.'); return r; }
+      mlh = x.rate; perH = mlh * c; dose = perH / W / iu.tf; r.main.value = dose;
+      r.formula.push(fmt(mlh)+' mL/h × '+fmt(c)+' '+iu.aLabel+'/mL = '+fmt(perH)+' '+iu.aLabel+'/h');
+      if(iu.perKg || iu.tf === 60) r.formula.push(fmt(perH)+' '+iu.aLabel+'/h'+(iu.perKg ? ' ÷ '+fmt(x.w)+' kg' : '')+(iu.tf === 60 ? ' ÷ 60 min' : '')+' = '+fmt(dose)+' '+iu.label);
+    }
+    r.rows.push({label:'مقدار دارو در ساعت', value:perH, unit:iu.aLabel+'/h'});
+    r.rows.push({label:'زمان اتمام محلول', text:dur(x.V/mlh)});
+    if(mlh < 0.5) r.warns.push('سرعت کمتر از 0.5 mL/h است و دقت پمپ پایین می‌آید؛ محلول رقیق‌تر را در نظر بگیرید.');
+    if(mlh > 999) r.warns.push('سرعت از 999 mL/h بیشتر است و از توان بیشتر پمپ‌ها بالاتر است؛ مقادیر را بررسی کنید.');
+    return r;
+  }
+
+  /* ---- 6.4 drip rate ---- */
+  function calcGTT(x){
+    var r = R('قطره در دقیقه', 'gtt/min');
+    if(isNaN(x.V) || (isNaN(x.h) && isNaN(x.m))) return r;
+    var mins = (isNaN(x.h) ? 0 : x.h) * 60 + (isNaN(x.m) ? 0 : x.m);
+    if(x.V <= 0 || mins <= 0){ r.errs.push('حجم و مدت زمان باید بزرگ‌تر از صفر باشند.'); return r; }
+    var g = x.V * x.df / mins;
+    r.main.value = g < 1 ? g : Math.round(g);
+    r.formula.push('('+fmt(x.V)+' mL × '+x.df+' gtt/mL) ÷ '+fmt(mins)+' min = '+fmt(g)+' gtt/min');
+    r.rows.push({label:'مقدار دقیق', value:g, unit:'gtt/min'});
+    r.rows.push({label:'قطره در ۱۵ ثانیه', value:g/4, unit:'gtt'});
+    r.rows.push({label:'فاصله هر قطره', value:60/g, unit:'s'});
+    r.rows.push({label:'معادل سرعت', value:x.V/mins*60, unit:'mL/h'});
+    if(g < 1) r.warns.push('کمتر از ۱ قطره در دقیقه؛ از ست میکرو یا پمپ استفاده کنید.');
+    if(g > 80) r.warns.push('بیش از ۸۰ قطره در دقیقه؛ شمارش دقیق دشوار است، در صورت امکان از پمپ انفوزیون استفاده کنید.');
+    if(x.df === 60) r.infos.push('در ست میکرو (60 gtt/mL) تعداد قطره در دقیقه با mL/h برابر است.');
+    return r;
+  }
+
+  /* ---- 6.5 dilution ---- */
+  function calcDilA(x){
+    var r = R('غلظت نهایی', x.Au+'/mL');
+    if(missing(x.A, x.V)) return r;
+    if(x.A <= 0 || x.V <= 0){ r.errs.push('مقادیر باید بزرگ‌تر از صفر باشند.'); return r; }
+    var c = x.A / x.V; r.main.value = c;
+    r.formula.push(fmt(x.A)+' '+x.Au+' ÷ '+fmt(x.V)+' mL = '+fmt(c)+' '+x.Au+'/mL');
+    if(U[x.Au].k === 'mass'){
+      ['mg','mcg'].filter(function(u){ return u !== x.Au; }).forEach(function(u){ r.rows.push({label:'معادل', value:conv(c, x.Au, u), unit:u+'/mL'}); });
+      r.rows.push({label:'درصد (w/v)', value:conv(c, x.Au, 'mg')/10, unit:'%'});
+    }
+    return r;
+  }
+  function calcDilB(x){
+    var r = R('غلظت', 'mg/mL');
+    if(!isNaN(x.p) && x.p > 0){
+      r.main = {label:'محلول '+fmt(x.p)+'٪', value:x.p*10, unit:'mg/mL'};
+      r.formula.push(fmt(x.p)+'% = '+fmt(x.p)+' g / 100 mL = '+fmt(x.p*10)+' mg/mL');
+    }
+    if(!isNaN(x.n) && x.n > 0){
+      var c = 1000 / x.n, item = {label:'نسبت 1:'+fmt(x.n), value:c, unit:'mg/mL'};
+      if(isNaN(r.main.value)) r.main = item; else r.rows.push(item);
+      r.formula.push('1:'+fmt(x.n)+' = 1 g / '+fmt(x.n)+' mL = '+fmt(c)+' mg/mL (= '+fmt(100/x.n)+'%)');
+    }
+    if(x.p === 0 || x.n === 0) r.errs.push('مقدار باید بزرگ‌تر از صفر باشد.');
+    return r;
+  }
+  function calcDilC(x){
+    var r = R('حجم لازم از محلول موجود (V1)', 'mL');
+    if(missing(x.c1, x.c2, x.v2)) return r;
+    if(x.c1 <= 0 || x.c2 <= 0 || x.v2 <= 0){ r.errs.push('مقادیر باید بزرگ‌تر از صفر باشند.'); return r; }
+    if(x.c2 >= x.c1){ r.errs.push('غلظت مطلوب (C2) باید کمتر از غلظت محلول موجود (C1) باشد.'); return r; }
+    var v1 = x.c2 * x.v2 / x.c1; r.main.value = v1;
+    r.rows.push({label:'حجم حلال برای افزودن', value:x.v2 - v1, unit:'mL', hl:true});
+    r.formula.push('V1 = ('+fmt(x.c2)+' × '+fmt(x.v2)+' mL) ÷ '+fmt(x.c1)+' = '+fmt(v1)+' mL');
+    r.formula.push('diluent = '+fmt(x.v2)+' − '+fmt(v1)+' = '+fmt(x.v2 - v1)+' mL');
+    return r;
+  }
+
+  /* ---- 6.6 renal / BSA ---- */
+  function calcRenal(x){
+    var r = R('کلیرنس کراتینین (Cockcroft–Gault)', 'mL/min');
+    if([x.age, x.h, x.w, x.scr].some(function(v){ return !isNaN(v) && v <= 0; })){ r.errs.push('مقادیر باید بزرگ‌تر از صفر باشند.'); return r; }
+    var bsa = NaN, ibw = NaN, adj = NaN, f = x.sex === 'f';
+    if(!isNaN(x.h) && !isNaN(x.w)){
+      bsa = Math.sqrt(x.h * x.w / 3600);
+      r.rows.push({label:'BSA (Mosteller)', value:bsa, unit:'m²', hl:true});
+      r.rows.push({label:'BMI', value:x.w / Math.pow(x.h/100, 2), unit:'kg/m²'});
+      r.formula.push('BSA = √('+fmt(x.h)+' × '+fmt(x.w)+' ÷ 3600) = '+fmt(bsa)+' m²');
+    }
+    if(!isNaN(x.w) && (x.w < 0.3 || x.w > 250)) r.warns.push(WEIGHT_WARN);
+    if(!isNaN(x.h)){
+      ibw = (f ? 45.5 : 50) + 2.3 * (x.h/2.54 - 60);
+      r.rows.push({label:'وزن ایده‌آل (IBW)', value:ibw, unit:'kg'});
+      r.formula.push('IBW = '+(f ? '45.5' : '50')+' + 2.3 × ('+fmt(x.h/2.54)+' in − 60) = '+fmt(ibw)+' kg');
+      if(x.h < 152) r.warns.push('قد کمتر از 152 cm است؛ فرمول وزن ایده‌آل (Devine) در این قد دقت کمی دارد.');
+      if(!isNaN(x.w)){ adj = ibw + 0.4 * (x.w - ibw); r.rows.push({label:'وزن تعدیل‌شده (AdjBW)', value:adj, unit:'kg'}); }
+    }
+    if(!isNaN(x.w) && !isNaN(ibw)){
+      if(x.wt === 'ibw' && x.w < ibw) r.warns.push('وزن واقعی از وزن ایده‌آل کمتر است؛ در این حالت معمولاً وزن واقعی به کار می‌رود.');
+      if(x.wt === 'adj' && x.w <= 1.2 * ibw) r.infos.push('وزن تعدیل‌شده معمولاً فقط وقتی به کار می‌رود که وزن واقعی بیش از ۱۲۰٪ وزن ایده‌آل باشد.');
+      if(x.wt === 'actual' && x.w > 1.2 * ibw) r.infos.push('وزن واقعی بیش از ۱۲۰٪ وزن ایده‌آل است؛ در چاقی بسیاری از منابع وزن تعدیل‌شده را توصیه می‌کنند.');
+    }
+    if(!isNaN(x.scr)){
+      if(x.scru === 'mgdl' && x.scr > 20) r.warns.push('کراتینین بیش از 20 mg/dL است؛ آیا واحد µmol/L است؟');
+      if(x.scru === 'umol' && x.scr < 20) r.warns.push('کراتینین کمتر از 20 µmol/L است؛ آیا واحد mg/dL است؟');
+    }
+    var wUse = x.wt === 'ibw' ? ibw : (x.wt === 'adj' ? adj : x.w);
+    if(!isNaN(x.age) && !isNaN(x.scr) && !isNaN(wUse) && wUse > 0){
+      var s = x.scru === 'umol' ? x.scr / 88.4 : x.scr;
+      if(x.scru === 'umol') r.formula.push(fmt(x.scr)+' µmol/L ÷ 88.4 = '+fmt(s)+' mg/dL');
+      var cr = (140 - x.age) * wUse / (72 * s) * (f ? 0.85 : 1);
+      if(cr <= 0) r.errs.push('با این سن، فرمول Cockcroft–Gault عدد معتبری نمی‌دهد.');
+      else {
+        r.main.value = cr;
+        r.formula.push('CrCl = (140 − '+fmt(x.age)+') × '+fmt(wUse)+' kg ÷ (72 × '+fmt(s)+')'+(f ? ' × 0.85' : '')+' = '+fmt(cr)+' mL/min');
+      }
+      if(x.age < 18) r.warns.push('فرمول Cockcroft–Gault برای افراد زیر ۱۸ سال معتبر نیست؛ در کودکان از فرمول Schwartz استفاده کنید.');
+    } else if(!isNaN(x.age) || !isNaN(x.scr)){
+      r.infos.push('برای کلیرنس: سن، کراتینین و وزن لازم است' + (x.wt !== 'actual' ? ' (برای IBW و AdjBW، قد هم لازم است).' : '.'));
+    }
+    if(!isNaN(x.dm) && x.dm > 0){
+      if(isNaN(bsa)) r.infos.push('برای دوز بر اساس سطح بدن، قد و وزن را وارد کنید.');
+      else {
+        r.rows.push({label:'دوز بر اساس BSA', value:x.dm * bsa, unit:x.dmu, hl:true});
+        r.formula.push(fmt(x.dm)+' '+x.dmu+'/m² × '+fmt(bsa)+' m² = '+fmt(x.dm * bsa)+' '+x.dmu);
+      }
+    }
+    return r;
+  }
+
+  /* ---- 6.7 maintenance fluids ---- */
+  function calcMaint(x){
+    var w = x.w, r = R('سرعت نگهدارنده (4-2-1)', 'mL/h');
+    if(isNaN(w)) return r;
+    if(w <= 0){ r.errs.push('وزن باید بزرگ‌تر از صفر باشد.'); return r; }
+    var a = Math.min(w, 10), b = Math.min(Math.max(w - 10, 0), 10), c = Math.max(w - 20, 0);
+    var hr = 4*a + 2*b + c, day = 100*a + 50*b + 20*c;
+    r.main.value = hr;
+    r.rows.push({label:'حجم ۲۴ ساعته (100/50/20)', value:day, unit:'mL/day', hl:true});
+    r.rows.push({label:'حجم روزانه ÷ ۲۴', value:day/24, unit:'mL/h'});
+    var ph = [fmt(a)+'×4'], pd = [fmt(a)+'×100'];
+    if(b){ ph.push(fmt(b)+'×2'); pd.push(fmt(b)+'×50'); }
+    if(c){ ph.push(fmt(c)+'×1'); pd.push(fmt(c)+'×20'); }
+    r.formula.push(ph.join(' + ')+' = '+fmt(hr)+' mL/h');
+    r.formula.push(pd.join(' + ')+' = '+fmt(day)+' mL/day');
+    if(w > 250) r.warns.push(WEIGHT_WARN);
+    if(day > 2400) r.warns.push('بیش از 2400 mL در روز؛ سقف رایج حدود 2400 mL/day (حدود 100 mL/h) است — طبق پروتکل بخش.');
+    return r;
+  }
+
+  var ENGINE = {dhv:calcDHV, wb:calcWB, inf:calcINF, gtt:calcGTT, dilA:calcDilA, dilB:calcDilB, dilC:calcDilC, renal:calcRenal, maint:calcMaint};
+
+  /* ---------- speech text → quantities ---------- */
+  var NUMS = {
+    'صفر':0,'یک':1,'یه':1,'دو':2,'سه':3,'چهار':4,'پنج':5,'شش':6,'شیش':6,'هفت':7,'هشت':8,'نه':9,
+    'ده':10,'یازده':11,'دوازده':12,'سیزده':13,'چهارده':14,'پانزده':15,'پونزده':15,'شانزده':16,'شونزده':16,
+    'هفده':17,'هیفده':17,'هجده':18,'هیجده':18,'نوزده':19,
+    'بیست':20,'سی':30,'چهل':40,'پنجاه':50,'شصت':60,'هفتاد':70,'هشتاد':80,'نود':90,
+    'صد':100,'یکصد':100,'دویست':200,'سیصد':300,'چهارصد':400,'پانصد':500,'پونصد':500,'ششصد':600,'شیشصد':600,'هفتصد':700,'هشتصد':800,'نهصد':900,
+    zero:0,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,
+    fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,fifty:50,
+    sixty:60,seventy:70,eighty:80,ninety:90
+  };
+  var MULT = {hundred:100};
+  var SCALE = {'هزار':1000,'میلیون':1e6,thousand:1000,million:1e6};
+  var CONNECT = {'و':1,and:1,a:1};
+  var HALF = {'نیم':1,'نصف':1,half:1};
+  var DEC = {'ممیز':1,'اعشار':1,'نقطه':1,point:1,dot:1};
+  var DENOM = {'دهم':10,'صدم':100,'هزارم':1000,tenth:10,tenths:10,hundredth:100,hundredths:100,thousandth:1000,thousandths:1000};
+
+  function norm(s){
+    s = latinDigits(String(s).toLowerCase())
+      .replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/[‌‍‎‏]/g,' ')
+      .replace(/(\d)\s*[٫\/]\s*(\d)/g,'$1.$2')
+      .replace(/(\d),(?=\d{3}(\D|$))/g,'$1')
+      .replace(/(\d)٬(?=\d{3})/g,'$1')
+      .replace(/[µμ]/g,'u').replace(/[%٪]/g,' % ')
+      .replace(/(\d)([^\d\s.:])/g,'$1 $2').replace(/([^\d\s.:])(\d)/g,'$1 $2')
+      .replace(/(\d)\s*:\s*(\d)/g,'$1 به $2')
+      .replace(/[-–—،,؛;!?؟()«»"'“”]/g,' ').replace(/\.(?!\d)/g,' ')
+      .replace(/\s+/g,' ').trim();
+    // «سی سی» = cc, but «سی سی سی» = 30 cc
+    return (' '+s+' ').replace(/ سی ?سی (?!سی )/g,' cc ').replace(/ کی ?سی ?ال /g,' kcl ').replace(/\s+/g,' ').trim();
+  }
+
+  function parseIntRun(t, i){
+    var acc = 0, grp = 0, last = 0, j = i, any = false, good = i, conn = false;
+    while(j < t.length){
+      var w = t[j];
+      if(has(CONNECT,w)){ if(!any) return null; conn = true; j++; continue; }
+      if(has(NUMS,w)){
+        var v = NUMS[w], c = v >= 100 ? 3 : (v >= 20 ? 2 : 1);
+        if(w === 'صد' && last === 1 && grp > 0 && grp < 10 && !conn){ grp *= 100; last = 3; any = true; good = ++j; continue; }   // «پنج صد» = 500
+        if(last && c >= last) break;
+        if(last && last < 4 && !conn && /[؀-ۿ]/.test(w)) break;   // Persian parts need «و»: «هشتاد هجده» = 80 and 18
+        grp += v; last = c; any = true; conn = false; good = ++j; continue;
+      }
+      if(has(MULT,w)){ grp = (grp || 1) * MULT[w]; last = 3; any = true; conn = false; good = ++j; continue; }
+      if(has(SCALE,w)){ acc += (grp || 1) * SCALE[w]; grp = 0; last = 4; any = true; conn = false; good = ++j; continue; }
+      break;
+    }
+    return any ? {value: acc + grp, next: good} : null;
+  }
+  function decimalDigits(t, k){
+    var ds = '', j = k;
+    while(j < t.length){
+      if(/^\d+$/.test(t[j])){ ds += t[j]; j++; continue; }
+      var r = parseIntRun(t, j); if(!r) break;
+      ds += String(r.value); j = r.next;
+    }
+    return ds ? {str: ds, next: j} : null;
+  }
+  function halfOrFrac(t, j){
+    var k = j; while(k < t.length && has(CONNECT,t[k])) k++;
+    if(has(HALF,t[k])) return {value: 0.5, next: k+1};
+    if(k > j){
+      var r = /^\d+$/.test(t[k] || '') ? {value: +t[k], next: k+1} : parseIntRun(t, k);
+      if(r && has(DENOM,t[r.next])) return {value: r.value / DENOM[t[r.next]], next: r.next+1};
+    }
+    return null;
+  }
+  function parseNumberAt(t, i){
+    var w = t[i], v, j, d, h;
+    if(/^(\d+\.?\d*|\.\d+)$/.test(w)){
+      v = parseFloat(w); j = i+1;
+      if(has(SCALE,t[j])){ v *= SCALE[t[j]]; j++; }
+      else if(has(MULT,t[j])){ v *= MULT[t[j]]; j++; }
+      if(has(DEC,t[j]) && (d = decimalDigits(t, j+1))){ v = parseFloat(Math.trunc(v)+'.'+d.str); j = d.next; }
+      if((h = halfOrFrac(t, j))){ v += h.value; j = h.next; }
+      return {value: v, next: j};
+    }
+    if(has(HALF,w)) return {value: 0.5, next: i+1};
+    if(has(DEC,w) && (d = decimalDigits(t, i+1))) return {value: parseFloat('0.'+d.str), next: d.next};   // «ممیز پنج» = 0.5
+    var r = parseIntRun(t, i); if(!r) return null;
+    v = r.value; j = r.next;
+    if(has(DENOM,t[j])) return {value: v / DENOM[t[j]], next: j+1};
+    if(has(DEC,t[j]) && (d = decimalDigits(t, j+1))){ v = parseFloat(v+'.'+d.str); j = d.next; }
+    if((h = halfOrFrac(t, j))){ v += h.value; j = h.next; }
+    return {value: v, next: j};
+  }
+
+  var UNIT_RX = [
+    ['mUnits', /^(میلی ?(واحد|یونیت)|milli ?units?|mu)(?=\s|$)/],
+    ['mEq',    /^((میلی ?)?اکی ?وال(ا|ن)ن?(ت)?|میلی ?اکی ?والان|milli ?equivalents?|meq|m eq)(?=\s|$)/],
+    ['umol',   /^(میکرو ?مول|micro ?moles?|micro ?mol|umol)(?=\s|$)/],
+    ['mcg',    /^(میکرو ?گرم|میکرو|micro ?grams?|mcg|ug)(?=\s|$)/],
+    ['mg',     /^(میلی ?گرم|milli ?grams?|mg)(?=\s|$)/],
+    ['mL',     /^(میلی ?لیتر|میل|cc|milli ?lit(er|re)s?|ml|mls)(?=\s|$)/],
+    ['kg',     /^(کیلو ?گرم|کیلو|kilo ?grams?|kilos?|kgs?)(?=\s|$)/],
+    ['g',      /^(گرم|grams?|g|gr)(?=\s|$)/],
+    ['L',      /^(لیتر|lit(er|re)s?|l)(?=\s|$)/],
+    ['lb',     /^(پوند|pounds?|lbs?)(?=\s|$)/],
+    ['units',  /^(واحد|یونیت|units?|u)(?=\s|$)/],
+    ['cm',     /^(سانتی ?متر|سانت|centi ?met(er|re)s?|cm)(?=\s|$)/],
+    ['m',      /^(متر|met(er|re)s?|m)(?=\s|$)/],
+    ['h',      /^(ساعت|hours?|hrs?|h)(?=\s|$)/],
+    ['min',    /^(دقیقه|minutes?|mins?)(?=\s|$)/],
+    ['yr',     /^(سال|سالشه|سالمه|ساله|years?|years? old)(?=\s|$)/],
+    ['%',      /^(درصد|percent|%)(?=\s|$)/],
+    ['dose',   /^(نوبت|بار|times?|doses?)(?=\s|$)/]
+  ];
+  var PER_KG = /^(بر|در|per|a|an)( هر| every| each)? (کیلو ?گرم|کیلو|kilo ?grams?|kilos?|kgs?)(?=\s|$)/;
+  var PER_T = [
+    ['day', /^(بر|در|per|a|an)( هر| every| each)? (روز|days?|24 ساعت|24 hours?)(?=\s|$)/],
+    ['min', /^(بر|در|per|a|an)( هر| every| each)? (دقیقه|minutes?|mins?)(?=\s|$)/],
+    ['h',   /^(بر|در|per|an|a)( هر| every| each)? (ساعت|hours?|hrs?|h)(?=\s|$)/]
+  ];
+  function extractQuantities(s){
+    var t = s.split(' ').filter(Boolean), out = [], i = 0;
+    while(i < t.length){
+      var n = parseNumberAt(t, i);
+      if(!n){ i++; continue; }
+      var j = n.next, unit = null, perKg = false, per = null, m, k;
+      var rest = t.slice(j, j+4).join(' ');
+      for(k = 0; k < UNIT_RX.length; k++){ m = rest.match(UNIT_RX[k][1]); if(m){ unit = UNIT_RX[k][0]; j += m[0].split(' ').length; break; } }
+      if(unit && (has(U,unit) || unit === 'mL')){
+        rest = t.slice(j, j+5).join(' ');
+        if((m = rest.match(PER_KG))){ perKg = true; j += m[0].split(' ').length; rest = t.slice(j, j+5).join(' '); }
+        for(k = 0; k < PER_T.length; k++){ if((m = rest.match(PER_T[k][1]))){ per = PER_T[k][0]; j += m[0].split(' ').length; break; } }
+      }
+      out.push({value: n.value, unit: unit, perKg: perKg, per: per, start: i});
+      i = j;
+    }
+    return out;
+  }
+  function comp(q){ return q.unit ? q.unit + (q.perKg ? '/kg' : '') + (q.per ? '/' + q.per : '') : ''; }
+  function qText(q){ return fmt(q.value) + (q.unit ? ' ' + comp(q).replace('mUnits','milliunits').replace('umol','µmol').replace('yr','سال') : ''); }
+  function convStatic(q, target){
+    var u = q.unit, v = q.value;
+    if(!u || u === target) return v;
+    if(target === 'mL' && u === 'L') return v * 1000;
+    if(target === 'kg'){ if(u === 'lb') return v * 0.45359237; if(u === 'g') return v / 1000; }
+    if(target === 'cm' && u === 'm') return v * 100;
+    if(target === 'h' && u === 'min') return v / 60;
+    if(target === 'min' && u === 'h') return v * 60;
+    return NaN;
+  }
+
+  /* ---------- drug lookup ---------- */
+  DRUGS.forEach(function(d){
+    d.keys = d.k.split('|').concat([d.fa, d.en, d.fa.replace(/\s*\(.*\)/, ''), d.en.replace(/\s*\d+%$/, '')]).map(norm).filter(Boolean);
+  });
+  function findDrug(s){
+    var padded = ' ' + s + ' ', best = null, bk = '';
+    DRUGS.forEach(function(d){ d.keys.forEach(function(k){ if(k.length > bk.length && padded.indexOf(' '+k+' ') > -1){ best = d; bk = k; } }); });
+    if(best) return {drug: best, rest: padded.replace(' '+bk+' ', ' ').trim()};
+    if(s.length >= 3 && s.indexOf(' ') < 0){
+      // a partial word only: a whole first word such as «کلسیم» stays ambiguous (gluconate or chloride?)
+      var c = DRUGS.filter(function(d){ return d.keys.some(function(k){ return k.indexOf(s) === 0 && k.charAt(s.length) !== ' '; }); });
+      if(c.length === 1) return {drug: c[0], rest: ''};
+    }
+    return null;
+  }
+
+  /* =================================================================
+     2. UI
+     ================================================================= */
+  function seg(id){ return $(id).dataset.value; }
+  function val(id){ return $(id).value; }
+  function setSegV(id, v){
+    var g = $(id); g.dataset.value = v;
+    g.querySelectorAll('button').forEach(function(x){ x.setAttribute('aria-pressed', String(x.dataset.val === v)); });
+  }
+  function fieldName(inp){
+    if(inp.id === 'drug') return 'نام دارو';
+    var f = inp.closest('.field'), l = f && f.querySelector('.lbl');
+    return l ? l.textContent.replace(/\(.*?\)/g, '').trim() : '';
+  }
+
+  // Read every input of a card. Unparseable text becomes NaN and an explicit error, never a guess.
+  function reader(errs){
+    return function(id){
+      var el = $(id), p = parseTyped(el.value), bad = !!(p.ambiguous || p.invalid);
+      el.classList.toggle('bad', bad); el.closest('.inrow').classList.toggle('bad', bad);
+      if(p.ambiguous) errs.push('«' + el.value.trim() + '» در «' + fieldName(el) + '» مبهم است؛ جداکننده هزارگان نگذارید و ممیز را با «.» بنویسید.');
+      else if(p.invalid) errs.push('«' + el.value.trim() + '» در «' + fieldName(el) + '» عدد معتبری نیست.');
+      return p.value;
+    };
+  }
+
+  var INPUTS = {
+    dhv: function(n){ return {form:seg('dhv-form'), D:n('dhv-dose'), Du:val('dhv-dose-u'), H:n('dhv-have'), Hu:val('dhv-have-u'), V:n('dhv-vol')}; },
+    wb: function(n){ return {w:n('wb-w'), wu:val('wb-wu'), d:n('wb-dose'), du:val('wb-du'), basis:seg('wb-basis'), n:n('wb-n'), mx:n('wb-max'), ca:n('wb-ca'), cu:val('wb-cu'), cv:n('wb-cv')}; },
+    inf: function(n){ return {mode:seg('inf-mode'), A:n('inf-amt'), Au:val('inf-amtu'), V:n('inf-vol'), du:val('inf-du'), w:n('inf-w'), dose:n('inf-dose'), rate:n('inf-rate')}; },
+    gtt: function(n){ return {V:n('gtt-vol'), h:n('gtt-h'), m:n('gtt-m'), df:+val('gtt-df')}; },
+    dilA: function(n){ return {A:n('dil-a-amt'), Au:val('dil-a-u'), V:n('dil-a-vol')}; },
+    dilB: function(n){ return {p:n('dil-pct'), n:n('dil-ratio')}; },
+    dilC: function(n){ return {c1:n('dil-c1'), c2:n('dil-c2'), v2:n('dil-v2'), u:val('dil-cu')}; },
+    renal: function(n){ return {sex:seg('r-sex'), age:n('r-age'), h:n('r-h'), w:n('r-w'), scr:n('r-scr'), scru:val('r-scru'), wt:val('r-wt'), dm:n('r-dm'), dmu:val('r-dmu')}; },
+    maint: function(n){ return {w:n('m-w')}; }
+  };
+  // labels and visibility that depend on current selections
+  var SYNC = {
+    dhv: function(){
+      var tab = seg('dhv-form') === 'tab';
+      $('dhv-vol-wrap').hidden = tab;
+      $('dhv-have-lbl').textContent = tab ? 'مقدار دارو در هر قرص / کپسول (H)' : 'مقدار دارو در آمپول / ویال موجود (H)';
+    },
+    wb: function(){
+      document.querySelectorAll('.wb-du-label').forEach(function(e){ e.textContent = val('wb-du'); });
+      $('wb-n-lbl').textContent = seg('wb-basis') === 'day' ? 'تقسیم در چند نوبت' : 'تعداد نوبت در ۲۴ ساعت';
+    },
+    inf: function(){
+      var toRate = seg('inf-mode') === 'rate', iu = infUnit(val('inf-du'));
+      $('inf-dose-wrap').hidden = !toRate; $('inf-rate-wrap').hidden = toRate;
+      document.querySelectorAll('.inf-du-label').forEach(function(e){ e.textContent = iu.label; });
+      $('inf-w-opt').textContent = iu.perKg ? '(لازم)' : '(برای این واحد لازم نیست)';
+    },
+    dilC: function(){ document.querySelectorAll('.dil-cu-label').forEach(function(e){ e.textContent = val('dil-cu'); }); }
+  };
+
+  function render(key, r){
+    var out = document.querySelector('[data-out="'+key+'"]'), msgs = document.querySelector('[data-msgs="'+key+'"]');
+    var v = r.main.value, ok = typeof v === 'number' && isFinite(v);
+    var h = '<div class="res-top"><div class="res-label">'+esc(r.main.label)+'</div><span class="res-led" aria-hidden="true"></span></div><div class="res-val">'+
+      (ok ? '<bdi dir="ltr">'+esc(fmt(v))+' <small>'+esc(uName(r.main.unit || ''))+'</small></bdi>' : '<span>—</span>')+'</div>';
+    if(!ok && !r.rows.length) h += '<div class="res-hint">'+(r.errs.length ? 'محاسبه انجام نشد؛ پیام زیر را ببینید' : 'مقادیر لازم را وارد کنید')+'</div>';
+    if(r.rows.length){
+      h += '<dl class="res-rows">' + r.rows.map(function(x){
+        var dd = x.text !== undefined ? '<span>'+esc(x.text)+'</span>'
+          : '<bdi dir="ltr">'+esc(fmt(x.value))+(x.unit ? ' <small>'+esc(x.unit)+'</small>' : '')+'</bdi>';
+        return '<div><dt>'+esc(x.label)+'</dt><dd'+(x.hl ? ' class="hl"' : '')+'>'+dd+'</dd></div>';
+      }).join('') + '</dl>';
+    }
+    if(r.formula.length) h += '<div class="formula" dir="ltr"><span class="formula-cap">نحوه محاسبه</span>'+esc(r.formula.join('\n'))+'</div>';
+    out.innerHTML = h;
+    out.classList.toggle('is-empty', !ok);
+    out.classList.toggle('has-err', r.errs.length > 0);
+    var list = [];
+    r.errs.forEach(function(m){ list.push(['err','!','خطا',m]); });
+    r.warns.forEach(function(m){ list.push(['warn','!','هشدار',m]); });
+    r.infos.forEach(function(m){ list.push(['info','i','اطلاعات',m]); });
+    msgs.innerHTML = list.map(function(x){
+      return '<div class="msg '+x[0]+'" role="'+(x[0] === 'info' ? 'status' : 'alert')+'"><span class="mi" aria-label="'+x[2]+'">'+x[1]+'</span><span>'+esc(x[3])+'</span></div>';
+    }).join('');
+  }
+
+  function run(k){
+    try{
+      if(SYNC[k]) SYNC[k]();
+      var errs = [], x = INPUTS[k](reader(errs)), r = ENGINE[k](x);
+      if(errs.length){ r = R(r.main.label, r.main.unit); r.errs = errs; }
+      render(k, r);
+      return r;
+    }catch(e){ if(window.console) console.error(e); }
+  }
+  function runFrom(el){ var c = el.closest && el.closest('[data-calc]'); if(c) run(c.dataset.calc); }
+
+  /* ---------- mic buttons, drug tags ---------- */
+  var MIC_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>';
+  document.querySelectorAll('.inrow').forEach(function(row){
+    var inp = row.querySelector('input'); if(!inp || row.classList.contains('nomic')) return;
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'mic';
+    b.setAttribute('aria-label', 'ورود صوتی: ' + fieldName(inp)); b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = MIC_SVG;
+    inp.insertAdjacentElement('afterend', b);
+  });
+  document.querySelectorAll('[data-calc]').forEach(function(card){
+    var p = document.createElement('p'); p.className = 'drug-tag'; p.hidden = true;
+    card.querySelector('.card-head').insertAdjacentElement('afterend', p);
+  });
+  function resetCard(card){
+    card.querySelectorAll('input').forEach(function(i){ i.value = ''; i.classList.remove('bad'); i.closest('.inrow').classList.remove('bad'); });
+    card.querySelectorAll('select').forEach(function(s){
+      var d = Array.prototype.findIndex.call(s.options, function(o){ return o.defaultSelected; });
+      s.selectedIndex = d < 0 ? 0 : d;
+    });
+    card.querySelectorAll('.seg').forEach(function(g){ setSegV(g.id, g.dataset.default); });
+    var tag = card.querySelector('.drug-tag'); if(tag){ tag.hidden = true; tag.textContent = ''; tag.classList.remove('high'); }
+  }
+  function setTag(tab, text, high){
+    var card = document.querySelector('#tab-'+tab+' [data-calc]'), tag = card && card.querySelector('.drug-tag');
+    if(!tag) return;
+    tag.textContent = text; tag.hidden = !text; tag.classList.toggle('high', !!high);
+  }
+
+  /* ---------- tabs (only the last tab is remembered, never patient values) ---------- */
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[data-tab]'));
+  function showTab(k){
+    tabs.forEach(function(t){ var on = t.dataset.tab === k; t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; });
+    document.querySelectorAll('.calc').forEach(function(s){ s.classList.toggle('active', s.id === 'tab-'+k); });
+    try{ localStorage.setItem('medcalc-tab', k); }catch(e){}
+  }
+  function activeTab(){ var t = document.querySelector('[data-tab][aria-selected="true"]'); return t ? t.dataset.tab : 'dhv'; }
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function scrollToTabs(){
+    var nav = document.querySelector('.tabs');
+    if(nav.getBoundingClientRect().top > 1 || window.scrollY > nav.offsetTop){
+      try{ window.scrollTo({top: document.querySelector('.drugbox').getBoundingClientRect().bottom + window.scrollY, behavior: reduceMotion ? 'auto' : 'smooth'}); }catch(e){}
+    }
+  }
+  tabs.forEach(function(t, i){
+    t.addEventListener('click', function(){
+      showTab(t.dataset.tab);
+      try{ t.scrollIntoView({inline:'nearest', block:'nearest'}); }catch(e){}
+    });
+    t.addEventListener('keydown', function(e){
+      var d = e.key === 'ArrowLeft' ? 1 : (e.key === 'ArrowRight' ? -1 : 0);   // RTL
+      if(!d) return;
+      var n = tabs[(i + d + tabs.length) % tabs.length]; n.focus(); n.click(); e.preventDefault();
+    });
+  });
+
+  /* ---------- global event wiring ---------- */
+  document.addEventListener('input', function(e){ runFrom(e.target); });
+  document.addEventListener('change', function(e){ runFrom(e.target); });
+  document.addEventListener('click', function(e){
+    var mb = e.target.closest('.mic');
+    if(mb){ e.preventDefault(); toggleVoice(mb); return; }
+    var b = e.target.closest('.seg button');
+    if(b){
+      var g = b.parentElement; setSegV(g.id, b.dataset.val);
+      if(g.id === 'voice-lang'){ voiceLang = g.dataset.value; try{ localStorage.setItem('medcalc-voice', voiceLang); }catch(err){} }
+      runFrom(g); return;
+    }
+    var rs = e.target.closest('[data-reset]');
+    if(rs){ var card = rs.closest('[data-calc]'); resetCard(card); run(card.dataset.calc); }
+  });
+  $('theme-btn').addEventListener('click', function(){
+    var root = document.documentElement, cur = root.getAttribute('data-theme');
+    var dark = cur ? cur === 'dark' : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    root.setAttribute('data-theme', dark ? 'light' : 'dark');
+  });
+
+  /* =================================================================
+     3. VOICE → FIELDS
+     ================================================================= */
+  // which unit each field expects
+  var FIELD_U = {'dhv-vol':'mL','wb-cv':'mL','inf-vol':'mL','gtt-vol':'mL','dil-a-vol':'mL','dil-v2':'mL',
+                 'inf-w':'kg','r-w':'kg','m-w':'kg','r-h':'cm','gtt-h':'h','gtt-m':'min','r-age':'yr',
+                 'wb-n':'dose','dil-pct':'%','inf-rate':'mL'};
+  var FIELD_SEL = {'dhv-dose':'dhv-dose-u','dhv-have':'dhv-have-u','wb-w':'wb-wu','wb-dose':'wb-du','wb-ca':'wb-cu',
+                   'inf-amt':'inf-amtu','dil-a-amt':'dil-a-u','dil-c1':'dil-cu','r-scr':'r-scru','r-dm':'r-dmu',
+                   'wb-max':'@wb-du','dil-c2':'@dil-cu'};
+  var PAIR = {'dhv-have':'dhv-vol','wb-ca':'wb-cv','inf-amt':'inf-vol','dil-a-amt':'dil-a-vol'};
+
+  function findOption(sel, u){
+    var vals = Array.prototype.map.call(sel.options, function(o){ return o.value; });
+    var cand = [u, u+'/mL']; if(u === 'mg') cand.push('mgdl');
+    for(var i = 0; i < cand.length; i++) if(vals.indexOf(cand[i]) > -1) return cand[i];
+    return null;
+  }
+  // Returns the number to put into field `id`, or NaN when the spoken unit does not fit it.
+  // P.why (when set) explains a refusal in plain words.
+  function resolveVal(id, q, P){
+    if(id === 'inf-dose'){
+      if(!q.unit) return q.value;
+      var oi = findOption($('inf-du'), comp(q));
+      if(oi){ P.sels.push([$('inf-du'), oi]); return q.value; }
+      P.why = q.perKg && !q.per ? 'دوز وزنی بدون واحد زمان (' + qText(q) + ') وارد انفوزیون نمی‌شود'
+                                : 'واحد «' + qText(q) + '» جزو واحدهای دوز انفوزیون نیست';
+      return NaN;
+    }
+    if(id === 'wb-dose'){
+      if(!q.unit) return q.value;
+      if(q.per === 'min' || q.per === 'h'){ P.why = 'دوز با واحد زمان (' + qText(q) + ') مربوط به انفوزیون است، نه دوز وزنی'; return NaN; }
+      if(!q.perKg){ if(has(U, q.unit)) P.why = 'برای این کادر دوز به ازای کیلوگرم را بگویید؛ مثلاً «پانزده میلی گرم بر کیلو»'; return NaN; }
+      var ow = findOption($('wb-du'), q.unit); if(!ow) return NaN;
+      P.sels.push([$('wb-du'), ow]);
+      if(q.per === 'day') P.segs.push(['wb-basis','day']);
+      return q.value;
+    }
+    if(q.perKg){ if(id === 'dhv-dose') P.why = 'دوز وزنی (' + qText(q) + ') در حجم تجویز پذیرفته نمی‌شود؛ از تب «دوز وزنی» استفاده کنید'; return NaN; }
+    if(id === 'inf-rate') return (!q.unit || (q.unit === 'mL' && (!q.per || q.per === 'h'))) ? q.value : NaN;
+    if(q.per) return NaN;
+    if(id === 'r-scr' && q.unit && q.unit !== 'mg' && q.unit !== 'umol') return NaN;
+    var sid = FIELD_SEL[id];
+    if(sid){
+      if(sid.charAt(0) === '@'){
+        var tgt = $(sid.slice(1)).value.split('/')[0];
+        return (!q.unit || q.unit === tgt) ? q.value : conv(q.value, q.unit, tgt);
+      }
+      var sel = $(sid); if(!q.unit) return q.value;
+      var o = findOption(sel, q.unit);
+      if(o){ P.sels.push([sel, o]); return q.value; }
+      if(id === 'wb-w'){ var kg = convStatic(q, 'kg'); if(!isNaN(kg)) P.sels.push([sel, 'kg']); return kg; }
+      return conv(q.value, q.unit, sel.value.split('/')[0]);
+    }
+    var fu = FIELD_U[id];
+    return fu ? convStatic(q, fu) : q.value;
+  }
+  function unitErr(q){ return 'واحد «' + qText(q).replace(/^\S+\s*/, '') + '» برای این کادر مناسب نیست'; }
+
+  // One field, one utterance → a plan of values to write (nothing is written unless it all fits)
+  function planFill(inp, text){
+    var qs = extractQuantities(norm(text));
+    if(!qs.length) return {ok:false, err:'عددی در گفته شما پیدا نشد'};
+    var id = inp.id, P = {sets:[], sels:[], segs:[]}, i;
+    if(id === 'gtt-h' || id === 'gtt-m'){
+      var timed = qs.some(function(q){ return q.unit === 'h' || q.unit === 'min'; });
+      var total = 0, prevH = false;
+      if(timed){
+        qs.forEach(function(q){
+          if(q.unit === 'h'){ total += q.value * 60; prevH = true; }
+          else if(q.unit === 'min'){ total += q.value; prevH = false; }
+          else if(!q.unit && prevH){ total += q.value < 1 ? q.value * 60 : q.value; prevH = false; }
+        });
+      } else if(!qs[0].unit){ total = id === 'gtt-h' ? qs[0].value * 60 : qs[0].value; }
+      else return {ok:false, err:unitErr(qs[0])};
+      var hh = Math.floor(total / 60 + 1e-9), mm = Math.round(total - hh * 60);
+      return {ok:true, sets:[[$('gtt-h'), hh], [$('gtt-m'), mm]], sels:[], summary: hh + ' h ' + mm + ' min'};
+    }
+    if(id === 'r-h'){
+      var q0 = qs[0], cm;
+      if(q0.unit === 'm' || (!q0.unit && q0.value < 3)){
+        cm = q0.value * 100; var q1 = qs[1];
+        if(q1 && (!q1.unit || q1.unit === 'cm') && q1.value < 100) cm += q1.value;
+      } else cm = convStatic(q0, 'cm');
+      if(isNaN(cm)) return {ok:false, err:unitErr(q0)};
+      return {ok:true, sets:[[inp, cm]], sels:[]};
+    }
+    if(id === 'dil-ratio'){
+      var qr = qs[qs.length - 1];
+      if(qr.unit) return {ok:false, err:unitErr(qr)};
+      return {ok:true, sets:[[inp, qr.value]], sels:[], summary: '1:' + qr.value};
+    }
+    var isVol = FIELD_U[id] === 'mL', pairId = PAIR[id], primary = null;
+    for(i = 0; i < qs.length; i++){
+      var q = qs[i], vol = q.unit === 'mL' || q.unit === 'L';
+      if(isVol ? (vol || !q.unit) : (!pairId || !vol)){ primary = q; break; }
+    }
+    if(!primary) primary = qs[0];
+    var v = resolveVal(id, primary, P);
+    if(isNaN(v)) return {ok:false, err:P.why || unitErr(primary)};
+    P.sets.push([inp, v]);
+    if(pairId){
+      for(i = qs.indexOf(primary) + 1; i < qs.length; i++){
+        var qv = qs[i];
+        if(!qv.unit || qv.unit === 'mL' || qv.unit === 'L'){ P.sets.push([$(pairId), convStatic(qv, 'mL')]); break; }
+      }
+    }
+    P.ok = true; return P;
+  }
+
+  function unitText(el){
+    var row = el.closest('.inrow'), s = row.querySelector('select');
+    if(s) return s.options[s.selectedIndex].text;
+    var u = row.querySelector('.unit'); return u ? u.textContent.trim() : '';
+  }
+  function flash(el){ var row = el.closest('.inrow'); row.classList.remove('filled'); void row.offsetWidth; row.classList.add('filled'); }
+  function commitPlan(plan){
+    (plan.segs || []).forEach(function(p){ setSegV(p[0], p[1]); });
+    plan.sels.forEach(function(p){ p[0].value = p[1]; p[0].dispatchEvent(new Event('change', {bubbles:true})); });
+    var parts = [];
+    plan.sets.forEach(function(p){
+      var el = p[0], v = p[1];
+      el.value = String(Math.round(v * 10000) / 10000); el.classList.remove('bad');
+      el.dispatchEvent(new Event('input', {bubbles:true}));
+      flash(el);
+      var u = unitText(el);
+      parts.push(fmt(v) + (u === '1 :' ? '' : ' ' + u));
+    });
+    return plan.summary || parts.join('، ');
+  }
+  function applyVoice(inp, alts){
+    if(inp.id === 'drug'){
+      var best = alts[0];
+      for(var a = 0; a < alts.length; a++) if(findDrug(norm(alts[a]))){ best = alts[a]; break; }
+      inp.value = best.trim(); applyCommand(best, true); return;
+    }
+    var firstErr = null;
+    for(var i = 0; i < alts.length; i++){
+      var p = planFill(inp, alts[i]);
+      if(p.ok){
+        var sum = commitPlan(p);
+        showToast('ok', 'ثبت شد: <bdi dir="ltr">' + esc(sum) + '</bdi>', 'شنیده شد: «' + alts[i].trim() + '» — لطفاً کنترل کنید.');
+        return true;
+      }
+      if(!firstErr) firstErr = p.err;
+    }
+    showToast('err', esc(firstErr || 'عددی تشخیص داده نشد') + ' — چیزی ثبت نشد', 'شنیده شد: «' + (alts[0] || '').trim() + '»', false, kbAction(inp));
+    return false;
+  }
+
+  /* =================================================================
+     4. DRUG BOX + FULL-SENTENCE COMMANDS
+     ================================================================= */
+  var MODE_LABEL = {inf:'انفوزیون پمپ', wb:'دوز وزنی', dhv:'حجم تزریق'};
+  var DRUG_NAMES = [];
+  DRUGS.forEach(function(d){ DRUG_NAMES.push(d.fa, d.en); });
+  $('drug-list').innerHTML = DRUGS.map(function(d){ return '<option value="'+esc(d.fa)+'"></option><option value="'+esc(d.en)+'"></option>'; }).join('');
+  $('lib-body').innerHTML = Object.keys(DRUG_GROUPS).map(function(g){
+    return '<div class="lib-group"><h3>'+esc(DRUG_GROUPS[g])+'</h3><div class="chips">' +
+      DRUGS.map(function(d, i){ return d.c !== g ? '' : '<button type="button" class="chip'+(d.high ? ' hi' : '')+'" data-drug="'+i+'">'+esc(d.fa)+(d.high ? ' ⚠' : '')+'</button>'; }).join('') +
+      '</div></div>';
+  }).join('');
+
+  function prepText(m){ return fmt(m.a) + ' ' + uName(m.u) + ' / ' + fmt(m.v) + ' mL'; }
+  function duText(m){ return m.t === 'wb' ? m.du + '/kg' : uName(m.du.replace('mUnits/','milliunits/')); }
+  var HIGH_TXT = 'داروی پرخطر — کنترل با همکار دوم';
+
+  var curDrug = null;
+  function selectDrug(d, mi){
+    mi = mi || 0; var m = d.m[mi];
+    showTab(m.t);
+    var card = document.querySelector('[data-calc="'+m.t+'"]');
+    resetCard(card);
+    if(m.t === 'inf'){ $('inf-amt').value = m.a; $('inf-amtu').value = m.u; $('inf-vol').value = m.v; $('inf-du').value = m.du; }
+    else if(m.t === 'wb'){ $('wb-du').value = m.du; $('wb-ca').value = m.a; $('wb-cu').value = m.u; $('wb-cv').value = m.v; }
+    else { $('dhv-dose-u').value = m.du; $('dhv-have').value = m.a; $('dhv-have-u').value = m.u; $('dhv-vol').value = m.v; }
+    run(m.t);
+    setTag(m.t, '💊 ' + d.fa + (d.high ? ' — ⚠️ ' + HIGH_TXT + (d.note ? '. ' + d.note : '') : ''), d.high);
+    curDrug = {d:d, mi:mi}; renderDrugInfo();
+    return m.t;
+  }
+  function renderDrugInfo(custom){
+    var box = $('drug-info');
+    box.classList.remove('high');
+    if(custom){
+      box.innerHTML = '<div class="drug-name">'+esc(custom)+'</div><div class="drug-note">این دارو در فهرست داخلی نیست؛ نامش روی محاسبه‌گر فعال ثبت شد. غلظت و مقادیر را دستی وارد کنید یا بگویید.</div>';
+      box.hidden = false; return;
+    }
+    if(!curDrug){ box.hidden = true; box.innerHTML = ''; return; }
+    var d = curDrug.d, m = d.m[curDrug.mi];
+    var h = '<div class="drug-name">'+esc(d.fa)+' <bdi dir="ltr">'+esc(d.en)+'</bdi>'+(d.high ? '<span class="hi-badge">پرخطر</span>' : '')+'</div>';
+    if(d.m.length > 1) h += '<div class="chips" role="group" aria-label="حالت محاسبه">' + d.m.map(function(x, i){
+      return '<button type="button" class="chip" data-mode="'+i+'" aria-pressed="'+(i === curDrug.mi)+'">'+MODE_LABEL[x.t]+'</button>';
+    }).join('') + '</div>';
+    h += '<div class="drug-prep">'+(m.t === 'inf' ? 'آماده‌سازی پیش‌فرض: ' : 'غلظت آمپول / ویال: ')+'<bdi dir="ltr">'+esc(prepText(m))+'</bdi>، واحد دوز: <bdi dir="ltr">'+esc(duText(m))+'</bdi></div>';
+    if(d.high) h += '<div class="drug-note high">⚠️ '+HIGH_TXT+'.</div>';
+    if(d.note) h += '<div class="drug-note">'+esc(d.note)+'</div>';
+    h += '<div class="drug-warn">مقادیر پیش‌فرض، رایج‌ترین غلظت‌ها هستند؛ با برچسب دارو و پروتکل بخش تطبیق دهید.</div>';
+    box.innerHTML = h; box.hidden = false; box.classList.toggle('high', !!d.high);
+  }
+  function scrollToCard(tab){
+    var card = document.querySelector('#tab-'+tab+' [data-calc]');
+    try{ card.scrollIntoView({behavior: reduceMotion ? 'auto' : 'smooth', block:'start'}); }catch(e){}
+  }
+
+  var TABF = {
+    dhv:{dose:'dhv-dose', amt:'dhv-have', vol:'dhv-vol'},
+    wb:{weight:'wb-w', dose:'wb-dose', amt:'wb-ca', vol:'wb-cv', max:'wb-max'},
+    inf:{weight:'inf-w', dose:'inf-dose', rate:'inf-rate', amt:'inf-amt', vol:'inf-vol'},
+    gtt:{vol:'gtt-vol'}, dil:{},
+    renal:{weight:'r-w', age:'r-age', height:'r-h', scr:'r-scr', dose:'r-dm'},
+    maint:{weight:'m-w'}
+  };
+  var KW = {'وزن':'weight','وزنش':'weight',weight:'weight','دوز':'dose','دوزش':'dose',dose:'dose','سرعت':'rate',rate:'rate',
+            'سن':'age','سنش':'age',age:'age','قد':'height','قدش':'height',height:'height','کراتینین':'scr',creatinine:'scr',
+            'حداکثر':'max',max:'max',maximum:'max','حجم':'vol',volume:'vol'};
+
+  function cmdPlan(tab, rest){
+    var F = TABF[tab] || {}, P = {sets:[], sels:[], segs:[], ignored:[], rejected:[]}, done = {}, mins = 0, hasTime = false, loose = [];
+    function put(key, q){
+      var id = F[key];
+      if(!id){ P.ignored.push(qText(q)); return; }
+      var ctx = {sels:P.sels, segs:P.segs}, v = resolveVal(id, q, ctx);
+      if(isNaN(v)){ if(ctx.why) P.rejected.push(ctx.why); else P.ignored.push(qText(q)); return; }
+      P.sets.push([$(id), v]); done[key] = true;
+      if(key === 'rate') P.segs.push(['inf-mode','dose']);
+      if(key === 'dose' && tab === 'inf') P.segs.push(['inf-mode','rate']);
+    }
+    var segs = [{kw:null, t:[]}];
+    rest.split(' ').filter(Boolean).forEach(function(w){ if(has(KW,w)) segs.push({kw:KW[w], t:[]}); else segs[segs.length-1].t.push(w); });
+    segs.forEach(function(sg){
+      var qs = extractQuantities(sg.t.join(' '));
+      if(sg.kw && qs.length){
+        var q0 = qs[0];
+        if(sg.kw === 'height'){ var cm = q0.unit === 'm' || (!q0.unit && q0.value < 3) ? q0.value * 100 : convStatic(q0, 'cm');
+          if(q0.unit === 'm' || (!q0.unit && q0.value < 3)){ var q1 = qs[1]; if(q1 && (!q1.unit || q1.unit === 'cm') && q1.value < 100){ cm += q1.value; qs = qs.slice(1); } }
+          put('height', {value:cm, unit:'cm'}); }
+        else put(sg.kw, q0);
+        qs = qs.slice(1);
+      }
+      qs.forEach(function(q){ loose.push(q); });
+    });
+    for(var i = 0; i < loose.length; i++){
+      var q = loose[i], nx = loose[i+1], u = q.unit;
+      if(u === 'kg' || u === 'lb'){ put('weight', q); continue; }
+      if(u === 'h' || u === 'min'){
+        if(tab !== 'gtt'){ P.ignored.push(qText(q)); continue; }
+        hasTime = true; mins += u === 'h' ? q.value * 60 : q.value;
+        if(u === 'h' && nx && !nx.unit && nx.value < 1){ mins += nx.value * 60; i++; }   // «هشت ساعت و نیم»
+        continue;
+      }
+      if(u === 'yr'){ put('age', q); continue; }
+      if(u === 'cm' || u === 'm'){ put('height', {value: convStatic(q,'cm'), unit:'cm'}); continue; }
+      if(u === 'umol'){ put('scr', q); continue; }
+      if(u === 'mL' && q.per && tab === 'gtt'){ put('vol', {value:q.value, unit:'mL'}); hasTime = true; mins += q.per === 'day' ? 1440 : (q.per === 'h' ? 60 : 1); continue; }
+      if(u === 'mL' && q.per === 'h' && F.rate){ put('rate', q); continue; }
+      if(q.per || q.perKg){ if(u === 'mL') P.ignored.push(qText(q)); else put('dose', q); continue; }
+      if(u && has(U,u)){
+        if(F.amt && !done.amt && nx && (nx.unit === 'mL' || nx.unit === 'L')){ put('amt', q); put('vol', nx); i++; continue; }
+        if(tab === 'inf' && !done.amt){ put('amt', q); continue; }
+        if(tab === 'wb'){ P.ignored.push(qText(q)); continue; }
+        put('dose', q); continue;
+      }
+      if(u === 'mL' || u === 'L'){ put('vol', q); continue; }
+      if(!u && F.dose && !done.dose){ put('dose', q); continue; }
+      P.ignored.push(qText(q));
+    }
+    if(hasTime){ var hh = Math.floor(mins / 60 + 1e-9); P.sets.push([$('gtt-h'), hh], [$('gtt-m'), Math.round(mins - hh * 60)]); }
+    return P;
+  }
+
+  function applyCommand(raw, fromVoice){
+    var s = norm(raw || '');
+    if(!s){ showToast('err', 'نام دارو یا فرمان را وارد کنید', ''); return; }
+    var f = findDrug(s), tab = activeTab(), rest = s, name = '';
+    if(f){ tab = selectDrug(f.drug, 0); rest = f.rest; }
+    else {
+      var toks = s.split(' '), k = 0;
+      while(k < toks.length && !parseNumberAt(toks, k) && !has(KW, toks[k])) k++;
+      name = toks.slice(0, k).join(' '); rest = toks.slice(k).join(' ');
+      if(name){ curDrug = null; renderDrugInfo(name); setTag(tab, '💊 ' + name + ' (خارج از فهرست)'); }
+    }
+    var P = cmdPlan(tab, rest);
+    var tail = '';
+    if(P.rejected.length) tail += ' — رد شد: ' + P.rejected.join('؛ ');
+    if(P.ignored.length) tail += ' — نادیده گرفته شد: ' + P.ignored.join('، ');
+    var heard = fromVoice ? ' — شنیده شد: «' + String(raw).trim() + '»' : '';
+    var title = f ? esc(f.drug.fa) : (name ? esc(name) : '');
+    $('drug').value = f ? f.drug.fa : (name || '');
+    if(!P.sets.length){
+      if(f) showToast(P.rejected.length ? 'err' : 'ok', title + ' — آماده شد', 'محاسبه‌گر «' + MODE_LABEL[f.drug.m[0].t] + '» با غلظت رایج پر شد؛ مقادیر بیمار را وارد کنید یا بگویید.' + tail + heard);
+      else if(name) showToast('info', title, 'در فهرست نیست؛ مقادیر را دستی وارد کنید.' + tail + heard);
+      else showToast('err', 'دارو یا عددی تشخیص داده نشد', '«' + String(raw).trim() + '»', false, kbAction($('drug')));
+      return P;
+    }
+    var sum = commitPlan(P);
+    showToast(P.rejected.length ? 'err' : 'ok', (title ? title + ' — ' : '') + 'ثبت شد', sum + tail + heard + ' — لطفاً کنترل کنید.');
+    scrollToCard(tab);
+    return P;
+  }
+
+  $('drug').addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); applyCommand(this.value); } });
+  $('drug').addEventListener('input', function(){ if(DRUG_NAMES.indexOf(this.value.trim()) > -1) applyCommand(this.value); });
+  $('drug-go').addEventListener('click', function(){ applyCommand($('drug').value); });
+  $('drug-clear').addEventListener('click', function(){
+    $('drug').value = ''; curDrug = null; renderDrugInfo();
+    document.querySelectorAll('.drug-tag').forEach(function(t){ t.hidden = true; t.textContent = ''; t.classList.remove('high'); });
+  });
+  $('drug-info').addEventListener('click', function(e){
+    var c = e.target.closest('.chip'); if(c && curDrug) selectDrug(curDrug.d, +c.dataset.mode);
+  });
+  $('lib-body').addEventListener('click', function(e){
+    var c = e.target.closest('[data-drug]'); if(!c) return;
+    var d = DRUGS[+c.dataset.drug]; $('drug').value = d.fa; var t = selectDrug(d, 0);
+    $('lib').open = false; scrollToCard(t);
+  });
+
+  /* ---------- toast ---------- */
+  var toastTimer = null, toastAct = null;
+  function showToast(kind, titleHtml, text, sticky, action){
+    var t = $('vtoast');
+    t.className = 'vtoast ' + kind; t.hidden = false;
+    $('vt-ic').textContent = kind === 'ok' ? '✓' : (kind === 'err' ? '!' : (kind === 'info' ? 'i' : ''));
+    $('vt-title').innerHTML = titleHtml;
+    $('vt-text').textContent = text || ''; $('vt-text').hidden = !text;
+    $('vt-stop').hidden = kind !== 'listen'; $('vt-close').hidden = kind === 'listen';
+    toastAct = action || null; $('vt-act').hidden = !action; if(action) $('vt-act').textContent = action.label;
+    clearTimeout(toastTimer);
+    if(!sticky) toastTimer = setTimeout(hideToast, kind === 'err' ? 9000 : 6500);
+  }
+  function hideToast(){ $('vtoast').hidden = true; toastAct = null; }
+  $('vt-close').addEventListener('click', hideToast);
+  $('vt-act').addEventListener('click', function(){ var a = toastAct; hideToast(); if(a) a.fn(); });
+  $('vt-stop').addEventListener('click', function(){ if(voice.rec){ try{ voice.rec.stop(); }catch(e){} } });
+
+  /* ---------- keyboard-dictation fallback ---------- */
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var srBroken = !SR;
+  var voiceLang = 'fa';
+  try{ var vl = localStorage.getItem('medcalc-voice'); if(vl === 'fa' || vl === 'en') voiceLang = vl; }catch(e){}
+  setSegV('voice-lang', voiceLang);
+  function keyboardMode(){
+    srBroken = true;
+    $('vb-help').textContent = 'میکروفون مرورگر در این نما در دسترس نیست. روی میکروفون هر کادر بزنید؛ پنجره‌ای باز می‌شود — با میکروفون کیبورد گوشی بگویید و «ثبت» را بزنید.';
+  }
+  if(srBroken) keyboardMode();
+
+  var sheetTarget = null, sheetReturn = null;
+  function openKeyboardVoice(inp){
+    hideToast();
+    if(inp.id === 'drug'){
+      inp.focus(); inp.select && inp.select();
+      showToast('info', 'روی میکروفون کیبورد بزنید', 'نام دارو (و در صورت تمایل مقادیر بیمار) را بگویید و «اجرا» را بزنید.');
+      return;
+    }
+    sheetTarget = inp; sheetReturn = document.activeElement;
+    $('vs-title').textContent = 'ورود با میکروفون کیبورد: ' + (fieldName(inp) || '');
+    $('vs-input').value = ''; $('vsheet').hidden = false; $('vs-input').focus();
+  }
+  function closeSheet(){
+    $('vsheet').hidden = true; var t = sheetTarget; sheetTarget = null;
+    if(t && t.closest('.inrow')){ var mb = t.closest('.inrow').querySelector('.mic'); try{ (mb || t).focus({preventScroll:true}); }catch(e){} }
+  }
+  function submitSheet(){
+    var t = $('vs-input').value.trim(), target = sheetTarget;
+    closeSheet(); if(t && target) applyVoice(target, [t]);
+  }
+  $('vs-go').addEventListener('click', submitSheet);
+  $('vs-close').addEventListener('click', closeSheet);
+  $('vs-input').addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); submitSheet(); }
+    else if(e.key === 'Escape'){ e.preventDefault(); closeSheet(); }
+  });
+  function kbAction(inp){ return {label:'میکروفون کیبورد', fn:function(){ openKeyboardVoice(inp); }}; }
+
+  /* ---------- browser speech recognition ---------- */
+  var VOICE_ERR = {
+    'not-allowed': ['دسترسی مرورگر به میکروفون داده نشده', 'از میکروفون کیبورد گوشی استفاده کنید.', true],
+    'service-not-allowed': ['تشخیص گفتار مرورگر در این نما مجاز نیست', 'از میکروفون کیبورد گوشی استفاده کنید.', true],
+    'audio-capture': ['میکروفون در دسترس نیست', 'از میکروفون کیبورد گوشی استفاده کنید.', true],
+    'no-speech': ['صدایی شنیده نشد', 'دوباره روی میکروفون بزنید و واضح بگویید.'],
+    'network': ['برای تشخیص گفتار مرورگر اینترنت لازم است', 'بدون اینترنت از میکروفون کیبورد استفاده کنید.'],
+    'language-not-supported': ['این زبان در مرورگر پشتیبانی نمی‌شود', 'زبان گفتار را English کنید یا از میکروفون کیبورد استفاده کنید.']
+  };
+  var voice = {rec:null, input:null, btn:null, done:false, err:false, started:false, sid:0};
+  function endVoiceUI(){
+    if(voice.btn){ voice.btn.classList.remove('on'); voice.btn.setAttribute('aria-pressed', 'false'); }
+    voice.rec = null; voice.input = null; voice.btn = null;
+  }
+  function toggleVoice(btn){
+    var inp = btn.closest('.inrow').querySelector('input');
+    if(voice.rec && voice.input === inp){ try{ voice.rec.stop(); }catch(e){} return; }
+    if(srBroken){ openKeyboardVoice(inp); return; }
+    startVoice(inp, btn);
+  }
+  function startVoice(inp, btn){
+    if(voice.rec){ voice.sid++; try{ voice.rec.abort(); }catch(e){} endVoiceUI(); }
+    var rec; try{ rec = new SR(); }catch(e){ keyboardMode(); openKeyboardVoice(inp); return; }
+    var sid = ++voice.sid;
+    rec.lang = voiceLang === 'en' ? 'en-US' : 'fa-IR';
+    rec.interimResults = true; rec.maxAlternatives = 5; rec.continuous = false;
+    voice.rec = rec; voice.input = inp; voice.btn = btn; voice.done = false; voice.err = false; voice.started = false;
+    btn.classList.add('on'); btn.setAttribute('aria-pressed', 'true');
+    var fname = fieldName(inp);
+    showToast('listen', 'در حال شنیدن… ' + esc(fname), 'بگویید؛ مثلاً «' + (inp.id === 'drug' ? 'هپارین وزن هشتاد' : 'دویست و پنجاه میلی گرم') + '»', true);
+    rec.onstart = rec.onaudiostart = function(){ if(sid === voice.sid) voice.started = true; };
+    rec.onresult = function(ev){
+      if(sid !== voice.sid) return;
+      voice.started = true;
+      var res = ev.results[ev.results.length - 1], alts = [];
+      for(var i = 0; i < res.length; i++) alts.push(res[i].transcript);
+      if(res.isFinal){ voice.done = true; applyVoice(inp, alts); }
+      else showToast('listen', 'در حال شنیدن… ' + esc(fname), '«' + alts[0] + '»', true);
+    };
+    rec.onerror = function(ev){
+      if(sid !== voice.sid) return;
+      voice.err = true;
+      if(ev.error === 'aborted') return;
+      var m = VOICE_ERR[ev.error] || ['خطا در ورود صوتی', String(ev.error || '')];
+      if(m[2]) keyboardMode();
+      showToast('err', esc(m[0]), m[1], false, ev.error === 'no-speech' ? null : kbAction(inp));
+    };
+    rec.onend = function(){
+      if(sid !== voice.sid) return;
+      var ok = voice.done, er = voice.err;
+      endVoiceUI();
+      if(!ok && !er) showToast('err', 'چیزی تشخیص داده نشد', 'دوباره روی میکروفون بزنید و واضح بگویید.', false, kbAction(inp));
+    };
+    try{ rec.start(); }
+    catch(e){ voice.sid++; endVoiceUI(); keyboardMode(); openKeyboardVoice(inp); return; }
+    // Some in-app browsers expose the API but never start listening: fall back to the keyboard mic.
+    setTimeout(function(){
+      if(sid === voice.sid && voice.rec && !voice.started){
+        voice.sid++; try{ rec.abort(); }catch(e){} endVoiceUI(); keyboardMode();
+        showToast('err', 'میکروفون مرورگر در این نما پاسخ نمی‌دهد', 'از میکروفون کیبورد گوشی استفاده کنید.', false, kbAction(inp));
+      }
+    }, 3500);
+  }
+
+  /* ---------- start ---------- */
+  var saved = null;
+  try{ saved = localStorage.getItem('medcalc-tab'); }catch(e){}
+  showTab(tabs.some(function(t){ return t.dataset.tab === saved; }) ? saved : 'dhv');
+  Object.keys(ENGINE).forEach(run);
+
+  try{
+    if('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && window.top === window.self)
+      navigator.serviceWorker.register('sw.js').catch(function(){});
+  }catch(e){}
+
+  // Test hook: pure engine + parser (no patient data involved)
+  window.MedCalc = {engine:ENGINE, fmt:fmt, parseTyped:parseTyped, norm:norm, extractQuantities:extractQuantities,
+    findDrug:findDrug, applyCommand:applyCommand, applyVoice:applyVoice, run:run, drugs:DRUGS};
+})();
+</script>
+</body>
+</html>
